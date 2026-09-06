@@ -135,9 +135,9 @@ model until that changes.
 - [`docs/runbooks/`](docs/runbooks) — 9 runbooks, one per alert
 - [`apps/ags_edusmart/README.md`](apps/ags_edusmart/README.md) — the application
 
-## Two upstream behaviours worth knowing
+## Three upstream behaviours worth knowing
 
-Both cost real debugging time and are documented at the call site:
+Each cost real debugging time and is documented at the call site:
 
 1. **ERPNext enqueues accounting-dimension field creation to a background
    worker.** On a bench with no running worker the Accounting Dimension row
@@ -151,3 +151,10 @@ Both cost real debugging time and are documented at the call site:
    single `fiscal_year` field became a from/to range. `commitments.py` handles
    both shapes, because a silently-zero budget would disable the budget check
    entirely rather than erroring.
+
+3. **Frappe 16 pins Python to `>=3.14,<3.15` and Node to `>=24`.** Neither is a
+   preference. A `python:3.12` base image fails minutes into `bench init` with a
+   uv resolver message that never names the base image as the cause, and older
+   Node builds assets with warnings then fails at runtime in socketio. Both are
+   recorded in [`docs/versions.lock.md`](docs/versions.lock.md) and enforced at
+   the top of the Dockerfile.

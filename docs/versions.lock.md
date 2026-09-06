@@ -24,10 +24,13 @@ deliberate commit to this file, reviewed like any other change.
 
 ## Runtime
 
-| | Version | Note |
+These are constraints, not preferences. Both were found by a build failing.
+
+| | Version | Why exactly this |
 |---|---|---|
-| Python | 3.14.4 | Ubuntu 26.04 default. Frappe 16 requires ≥ 3.10 |
-| Node | 22 LTS | asset build only; not in the runtime image |
+| **Python** | **3.14** | `frappe/pyproject.toml` pins `requires-python = ">=3.14,<3.15"` — an unusually tight range. A 3.12 base fails minutes into `bench init` with a uv resolver message that never names the base image as the cause. Ubuntu 26.04 ships 3.14.4, so the WSL bench works by luck; the container image had to be corrected. |
+| **Node** | **≥ 24** | `frappe/package.json` declares `engines: {node: ">=24"}`. Older Node builds assets with warnings and then fails at runtime in socketio — much more expensive to diagnose than a build error. Needed in the runtime image too, not just the builder, because socketio runs there. |
+| Debian | bookworm | `wkhtmltopdf` renders every fee invoice and payslip and is not packaged in newer Debian releases. |
 | MariaDB | 11.8.6 | utf8mb4 required — see `infra/mariadb/primary.cnf` |
 | Redis | 7 | three instances; see `infra/redis/` |
 

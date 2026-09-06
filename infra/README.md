@@ -77,6 +77,33 @@ query plan.
    pair. This is a school's cash ledger; the throughput cost is accepted
    deliberately so that no committed fee payment is lost on power failure.
 
+## Building the image
+
+```bash
+sudo bash scripts/start-docker.sh     # WSL2 does not reliably run systemd
+sudo bash scripts/build-image.sh      # writes a full log; reports the real exit status
+sudo bash scripts/verify-image.sh     # proves the image is usable, not just built
+```
+
+`build-image.sh` exists because `docker build ... | tail` swallows the build's
+exit code unless `pipefail` is set — a failed build then looks exactly like a
+successful one. That is not hypothetical: the first attempt here appeared to
+pass while `bench init` had aborted.
+
+`verify-image.sh` exists because "the build succeeded" is a weak claim. It runs
+inside the image and checks the things that can be quietly wrong: the Python
+minor version, the Node major version, every app present *and importable*, the
+AGS asset bundles actually built, `wkhtmltopdf` and the Noto fonts present, and
+that the image does not run as root.
+
+### Two base-image constraints that are not free choices
+
+| | Required | What goes wrong otherwise |
+|---|---|---|
+| Python | **3.14** exactly | frappe 16 pins `>=3.14,<3.15`. A 3.12 base fails minutes into `bench init` with a uv resolver message that never names the base image. |
+| Node | **≥ 24** | frappe's `engines` field. Older Node builds assets with warnings and then fails at runtime in socketio — much harder to diagnose than a build error. Needed in the runtime stage too, since socketio runs there. |
+| Debian | bookworm | `wkhtmltopdf` renders every invoice and payslip and is absent from newer Debian. |
+
 ## Deploying
 
 Migrations run as their own Job **before** the rollout — never as an

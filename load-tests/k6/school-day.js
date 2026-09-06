@@ -123,7 +123,18 @@ export const options = {
   },
 };
 
+// One session per VU, established on its first iteration and reused.
+//
+// k6 gives each VU its own module instance, so this module-level variable is
+// per-VU state. Logging in on *every* iteration would make roughly a third of
+// all traffic authentication, which is nothing like a real day: a parent signs
+// in once and then reads. Getting this wrong makes the whole profile measure
+// the auth path instead of the read path.
+let session = null;
+
 function login(user) {
+  if (session) return true;
+
   const res = http.post(
     `${BASE}/api/method/login`,
     { usr: user.usr, pwd: user.pwd },
@@ -131,6 +142,10 @@ function login(user) {
   );
   const ok = check(res, { 'login succeeded': (r) => r.status === 200 });
   loginFailures.add(!ok);
+  if (ok) {
+    const sid = res.cookies['sid'];
+    session = sid && sid.length ? sid[0].value : 'cookie-jar';
+  }
   return ok;
 }
 

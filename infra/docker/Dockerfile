@@ -4,10 +4,31 @@
 # build Frappe's asset bundles; the runtime carries neither. That is worth about
 # 1.4 GB per image and, more importantly, removes a compiler from a container
 # that faces the internet.
+#
+# ---------------------------------------------------------------------------
+# Two base-image constraints that are NOT free choices. Both were found by a
+# build failing, not by reading docs:
+#
+#   Python 3.14 exactly.  frappe 16 pins `requires-python = ">=3.14,<3.15"`.
+#     A 3.12 base fails minutes into `bench init` with a uv resolver message
+#     ("the current Python version does not satisfy Python>=3.14,<3.15") that
+#     never names the base image as the cause.
+#
+#   Node 24 or newer.  frappe's package.json declares `engines: {node: ">=24"}`.
+#     Older Node builds assets with warnings and then fails at runtime in
+#     socketio, which is far more expensive to diagnose than a build error.
+#
+#   Debian bookworm, not trixie.  wkhtmltopdf renders every fee invoice and
+#     payslip, and it is not packaged in newer Debian releases.
+# ---------------------------------------------------------------------------
+
+ARG PYTHON_IMAGE=python:3.14-slim-bookworm
+ARG NODE_MAJOR=24
 
 # ---------------------------------------------------------------------- builder
-FROM python:3.12-slim-bookworm AS builder
+FROM ${PYTHON_IMAGE} AS builder
 
+ARG NODE_MAJOR
 ARG FRAPPE_BRANCH=version-16
 ARG ERPNEXT_BRANCH=version-16
 ARG HRMS_BRANCH=version-16
@@ -21,14 +42,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libmariadb-dev pkg-config \
         libssl-dev libffi-dev \
         libxml2-dev libxslt1-dev zlib1g-dev \
-        redis-tools \
+        # `bench init` shells out to crontab to install the bench's schedule.
+        # It is absent from slim images, and its absence aborts the whole init
+        # with "There was a problem while creating /home/frappe/frappe-bench" —
+        # a message that never mentions cron. Nothing in the running container
+        # uses it: the scheduler is its own process (see entrypoint.sh).
+        cron \
     && rm -rf /var/lib/apt/lists/*
 
 # Node is needed only to build assets; it does not ship in the runtime stage.
-RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+RUN curl -fsSL https://deb.nodesource.com/setup_${NODE_MAJOR}.x | bash - \
     && apt-get install -y --no-install-recommends nodejs \
     && npm install -g yarn \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && node --version && yarn --version
 
 RUN useradd -ms /bin/bash frappe
 USER frappe
@@ -61,23 +88,31 @@ RUN bench build --production \
  && rm -rf /home/frappe/.cache /home/frappe/frappe-bench/apps/*/node_modules
 
 # ---------------------------------------------------------------------- runtime
-FROM python:3.12-slim-bookworm AS runtime
+FROM ${PYTHON_IMAGE} AS runtime
+
+ARG NODE_MAJOR
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        # mariadb-client: bench needs it for backup/restore, not just for psql-style shells
+        # mariadb-client: bench needs it for backup/restore
         mariadb-client \
         libmariadb3 \
         # wkhtmltopdf renders every fee invoice and payslip
         wkhtmltopdf xfonts-75dpi xfonts-base \
         # Arabic shaping in generated PDFs; without these, invoices print boxes
-        fonts-noto fonts-noto-core fonts-noto-cjk \
-        nodejs \
-        curl ca-certificates gosu \
+        fonts-noto fonts-noto-core \
+        curl ca-certificates \
     && rm -rf /var/lib/apt/lists/*
+
+# Node 24 in the runtime too — socketio runs here, and Debian's packaged nodejs
+# is far older than frappe's `engines: {node: ">=24"}`.
+RUN curl -fsSL https://deb.nodesource.com/setup_${NODE_MAJOR}.x | bash - \
+    && apt-get install -y --no-install-recommends nodejs \
+    && rm -rf /var/lib/apt/lists/* \
+    && node --version
 
 RUN useradd -ms /bin/bash frappe
 COPY --from=builder --chown=frappe:frappe /home/frappe /home/frappe
