@@ -23,6 +23,15 @@ import { check } from 'k6';
 import { Trend, Counter } from 'k6/metrics';
 
 const BASE = __ENV.BASE_URL || 'http://localhost:8000';
+
+// Frappe picks the site from the request's Host header and falls back to
+// default_site, which on a multi-site bench is a different database entirely.
+// Addressing the site by name keeps the Host header right; this maps that name
+// to the loopback so it works without an /etc/hosts entry. In staging the name
+// resolves for real and SITE_HOST is simply left unset.
+const SITE_HOST = __ENV.SITE_HOST || '';
+const HOSTS = SITE_HOST ? { [SITE_HOST]: '127.0.0.1' } : {};
+
 const WORKERS = Number(__ENV.WORKERS || 1);
 const PEAK = Number(__ENV.PEAK_RPS || 60);
 const STEP_S = Number(__ENV.STEP_SECONDS || 30);
@@ -71,6 +80,7 @@ export const options = {
   // Deliberately no thresholds: this profile is meant to be pushed past the
   // SLO. school-day.js is the one that gates.
   discardResponseBodies: false,
+  hosts: HOSTS,
 };
 
 export function setup() {

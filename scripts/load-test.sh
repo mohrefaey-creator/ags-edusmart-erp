@@ -71,13 +71,26 @@ cd "${BENCH_DIR}/sites" || { echo "no bench at ${BENCH_DIR}" >&2; exit 1; }
   frappe.app:application > /tmp/ags-gunicorn.log 2>&1 &
 GUNICORN_PID=$!
 
+# Reached by hostname, not by localhost.
+#
+# Frappe resolves the site from the request's Host header and falls back to
+# common_site_config's default_site, which on this bench is a different site
+# with none of the AGS tables. A request to http://localhost:PORT therefore
+# reaches the wrong database and fails in a way that reads as "gunicorn did not
+# come up". --resolve gives curl the right Host without touching /etc/hosts; k6
+# gets the same effect from its `hosts` option.
+PING="http://${SITE}:${PORT}/api/method/ping"
+RESOLVE="${SITE}:${PORT}:127.0.0.1"
+
 for _ in $(seq 1 60); do
-  curl -sf -m 5 "http://localhost:${PORT}/api/method/ping" >/dev/null 2>&1 && break
+  curl -sf -m 5 --resolve "${RESOLVE}" "${PING}" >/dev/null 2>&1 && break
   sleep 2
 done
-if ! curl -sf -m 5 "http://localhost:${PORT}/api/method/ping" >/dev/null 2>&1; then
-  echo "gunicorn did not come up. Last log lines:" >&2
+if ! curl -sf -m 5 --resolve "${RESOLVE}" "${PING}" >/dev/null 2>&1; then
+  echo "gunicorn did not come up at ${PING}. Last log lines:" >&2
   tail -20 /tmp/ags-gunicorn.log >&2
+  echo "--- direct response ---" >&2
+  curl -s -m 5 --resolve "${RESOLVE}" "${PING}" 2>&1 | head -5 >&2
   exit 1
 fi
 echo "   up. resident set:"
@@ -89,7 +102,8 @@ cd "${REPO_ROOT}/load-tests/k6" || exit 1
 if [ "${MODE}" = "calibrate" ] || [ "${MODE}" = "both" ]; then
   say "Calibration — finding the knee on one node"
   k6 run \
-    -e "BASE_URL=http://localhost:${PORT}" \
+    -e "BASE_URL=http://${SITE}:${PORT}" \
+    -e "SITE_HOST=${SITE}" \
     -e "WORKERS=${WORKERS}" \
     -e "PEAK_RPS=${PEAK_RPS}" \
     -e "USER=Administrator" \
@@ -113,7 +127,8 @@ if [ "${MODE}" = "school-day" ] || [ "${MODE}" = "both" ]; then
   echo "   proportional share of the design load. It is NOT a 2,500-user result;"
   echo "   only an unscaled run against the full topology is that."
   k6 run \
-    -e "BASE_URL=http://localhost:${PORT}" \
+    -e "BASE_URL=http://${SITE}:${PORT}" \
+    -e "SITE_HOST=${SITE}" \
     -e "SCALE=${SCALE}" \
     -e "PARENT_USER=Administrator" -e "PARENT_PASSWORD=${ADMIN_PASSWORD}" \
     -e "TEACHER_USER=Administrator" -e "TEACHER_PASSWORD=${ADMIN_PASSWORD}" \

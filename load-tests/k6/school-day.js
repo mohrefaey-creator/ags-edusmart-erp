@@ -39,6 +39,14 @@ const COMPRESSION = Number(__ENV.COMPRESSION || 60); // simulated minutes per re
 const SCALE = Math.max(1, Number(__ENV.SCALE || 1));
 const cohort = (n) => Math.max(1, Math.round(n / SCALE));
 
+// Frappe picks the site from the request's Host header and falls back to
+// default_site, which on a multi-site bench is a different database entirely.
+// Addressing the site by name keeps the Host header right; this maps that name
+// to the loopback so it works without an /etc/hosts entry. In staging the name
+// resolves for real and SITE_HOST is simply left unset.
+const SITE_HOST = __ENV.SITE_HOST || '';
+const HOSTS = SITE_HOST ? { [SITE_HOST]: '127.0.0.1' } : {};
+
 // Custom metrics, split by journey. A blended p95 hides the fact that the
 // attendance submit is the slow one.
 const portalLatency = new Trend('ags_portal_latency', true);
@@ -122,6 +130,8 @@ export const options = {
       duration: `${Math.round(360 * 60 / COMPRESSION)}s`,
     },
   },
+
+  hosts: HOSTS,
 
   // These are the SLOs from docs/capacity-model.md sec. 11. A run that breaches
   // them fails, so capacity claims cannot quietly rot.
