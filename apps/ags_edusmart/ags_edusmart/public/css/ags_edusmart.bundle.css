@@ -1,0 +1,57 @@
+/* AGS portal styling: school-friendly, mobile-first, bilingual (SKILL sec. 21/33). */
+
+.ags-page { max-width: 960px; margin: 0 auto; padding: 1rem; }
+
+.ags-card {
+	background: var(--card-bg, #fff);
+	border: 1px solid var(--border-color, #e5e7eb);
+	border-radius: 10px;
+	padding: 1rem 1.25rem;
+	margin-bottom: 1rem;
+}
+
+.ags-grid { display: grid; gap: 1rem; grid-template-columns: 1fr; }
+@media (min-width: 640px) { .ags-grid.cols-2 { grid-template-columns: 1fr 1fr; } }
+@media (min-width: 960px) { .ags-grid.cols-3 { grid-template-columns: repeat(3, 1fr); } }
+
+.ags-stat__label { font-size: .8rem; color: var(--text-muted, #6b7280); }
+.ags-stat__value { font-size: 1.5rem; font-weight: 600; }
+.ags-stat--danger .ags-stat__value { color: var(--red-600, #dc2626); }
+
+.ags-table { width: 100%; border-collapse: collapse; }
+.ags-table th, .ags-table td {
+	padding: .5rem .6rem;
+	border-bottom: 1px solid var(--border-color, #e5e7eb);
+	text-align: start;
+}
+.ags-table td.num, .ags-table th.num { text-align: end; font-variant-numeric: tabular-nums; }
+
+/* Wide tables scroll inside their own container rather than the page body. */
+.ags-scroll-x { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+/*
+ * Identifier isolation.
+ *
+ * In an RTL document the bidi algorithm reorders a leading digit run followed by
+ * a neutral and then letters: class "1-A" renders as "A-1". `unicode-bidi:
+ * isolate` alone is NOT enough - without `direction: ltr` the run still inherits
+ * RTL and still flips.
+ *
+ * Apply to identifier-shaped values only (invoice numbers, class codes, room
+ * codes). Never to a slot that can hold prose - it would force LTR onto Arabic -
+ * and never to a formatted currency amount, because it moves ر.س. to the wrong
+ * side.
+ */
+.code {
+	direction: ltr;
+	unicode-bidi: isolate;
+	text-align: start;
+}
+
+.ags-badge {
+	display: inline-block; padding: .1rem .5rem; border-radius: 999px;
+	font-size: .75rem; font-weight: 600;
+}
+.ags-badge--paid { background: #dcfce7; color: #166534; }
+.ags-badge--due { background: #fef9c3; color: #854d0e; }
+.ags-badge--overdue { background: #fee2e2; color: #991b1b; }

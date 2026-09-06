@@ -1,0 +1,198 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-09-06 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "sb_identity",
+  "division_name",
+  "division_name_ar",
+  "abbr",
+  "cb_identity",
+  "campus",
+  "company",
+  "division_type",
+  "is_active",
+  "sb_academic",
+  "from_grade",
+  "to_grade",
+  "cb_academic",
+  "head_of_division",
+  "cost_center"
+ ],
+ "fields": [
+  {
+   "fieldname": "sb_identity",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "division_name",
+   "fieldtype": "Data",
+   "label": "Division Name",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "division_name_ar",
+   "fieldtype": "Data",
+   "label": "Division Name (Arabic)"
+  },
+  {
+   "fieldname": "abbr",
+   "fieldtype": "Data",
+   "label": "Abbreviation",
+   "reqd": 1
+  },
+  {
+   "fieldname": "cb_identity",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "campus",
+   "fieldtype": "Link",
+   "label": "Campus",
+   "options": "AGS Campus",
+   "reqd": 1,
+   "in_list_view": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Data",
+   "label": "Company",
+   "fetch_from": "campus.company",
+   "read_only": 1
+  },
+  {
+   "fieldname": "division_type",
+   "fieldtype": "Select",
+   "label": "Division Type",
+   "options": "Kindergarten\nPrimary\nMiddle\nSecondary\nSenior",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "is_active",
+   "fieldtype": "Check",
+   "label": "Active",
+   "default": "1"
+  },
+  {
+   "fieldname": "sb_academic",
+   "fieldtype": "Section Break",
+   "label": "Academic Range"
+  },
+  {
+   "fieldname": "from_grade",
+   "fieldtype": "Link",
+   "label": "From Grade",
+   "options": "Program"
+  },
+  {
+   "fieldname": "to_grade",
+   "fieldtype": "Link",
+   "label": "To Grade",
+   "options": "Program"
+  },
+  {
+   "fieldname": "cb_academic",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "head_of_division",
+   "fieldtype": "Link",
+   "label": "Head of Division",
+   "options": "Employee"
+  },
+  {
+   "fieldname": "cost_center",
+   "fieldtype": "Link",
+   "label": "Cost Center",
+   "options": "Cost Center"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-06 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "AGS Core",
+ "name": "AGS School Division",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "permlevel": 0,
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "share": 1,
+   "print": 1,
+   "email": 1
+  },
+  {
+   "role": "AGS Group Executive",
+   "permlevel": 0,
+   "read": 1,
+   "write": 0,
+   "create": 0,
+   "delete": 0,
+   "report": 1,
+   "export": 1,
+   "share": 1,
+   "print": 1,
+   "email": 1
+  },
+  {
+   "role": "AGS Principal",
+   "permlevel": 0,
+   "read": 1,
+   "write": 0,
+   "create": 0,
+   "delete": 0,
+   "report": 1,
+   "export": 1,
+   "share": 1,
+   "print": 1,
+   "email": 1
+  },
+  {
+   "role": "AGS Finance Manager",
+   "permlevel": 0,
+   "read": 1,
+   "write": 0,
+   "create": 0,
+   "delete": 0,
+   "report": 1,
+   "export": 1,
+   "share": 1,
+   "print": 1,
+   "email": 1
+  },
+  {
+   "role": "Employee",
+   "permlevel": 0,
+   "read": 1,
+   "write": 0,
+   "create": 0,
+   "delete": 0,
+   "report": 1,
+   "export": 1,
+   "share": 1,
+   "print": 1,
+   "email": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "autoname": "format:{campus}-{abbr}",
+ "track_changes": 1,
+ "title_field": "division_name",
+ "show_title_field_in_link": 1,
+ "search_fields": "campus,division_type"
+}

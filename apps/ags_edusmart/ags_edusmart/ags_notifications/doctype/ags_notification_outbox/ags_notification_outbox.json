@@ -1,0 +1,184 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-09-06 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "channel",
+  "recipient",
+  "recipient_user",
+  "subject",
+  "message",
+  "sb_state",
+  "status",
+  "attempts",
+  "scheduled_for",
+  "cb_state",
+  "sent_on",
+  "error",
+  "priority",
+  "sb_ref2",
+  "reference_doctype",
+  "reference_name",
+  "cb_ref2",
+  "notification_rule",
+  "dedupe_key"
+ ],
+ "fields": [
+  {
+   "fieldname": "channel",
+   "fieldtype": "Select",
+   "label": "Channel",
+   "options": "In-App\nEmail\nSMS\nWhatsApp",
+   "reqd": 1,
+   "in_list_view": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "recipient",
+   "fieldtype": "Data",
+   "label": "Recipient",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "recipient_user",
+   "fieldtype": "Link",
+   "label": "User",
+   "options": "User"
+  },
+  {
+   "fieldname": "subject",
+   "fieldtype": "Data",
+   "label": "Subject",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "message",
+   "fieldtype": "Text Editor",
+   "label": "Message"
+  },
+  {
+   "fieldname": "sb_state",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Queued\nSent\nFailed\nCancelled",
+   "default": "Queued",
+   "in_list_view": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "attempts",
+   "fieldtype": "Int",
+   "label": "Attempts",
+   "default": "0"
+  },
+  {
+   "fieldname": "scheduled_for",
+   "fieldtype": "Datetime",
+   "label": "Scheduled For",
+   "search_index": 1
+  },
+  {
+   "fieldname": "cb_state",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "sent_on",
+   "fieldtype": "Datetime",
+   "label": "Sent On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "error",
+   "fieldtype": "Small Text",
+   "label": "Error"
+  },
+  {
+   "fieldname": "priority",
+   "fieldtype": "Select",
+   "label": "Priority",
+   "options": "Low\nNormal\nHigh\nUrgent",
+   "default": "Normal"
+  },
+  {
+   "fieldname": "sb_ref2",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "reference_doctype",
+   "fieldtype": "Link",
+   "label": "Reference Type",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "reference_name",
+   "fieldtype": "Dynamic Link",
+   "label": "Reference",
+   "options": "reference_doctype"
+  },
+  {
+   "fieldname": "cb_ref2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "notification_rule",
+   "fieldtype": "Link",
+   "label": "Rule",
+   "options": "AGS Notification Rule"
+  },
+  {
+   "fieldname": "dedupe_key",
+   "fieldtype": "Data",
+   "label": "Dedupe Key",
+   "unique": 1,
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-06 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "AGS Notifications",
+ "name": "AGS Notification Outbox",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "permlevel": 0,
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "share": 1,
+   "print": 1,
+   "email": 1
+  },
+  {
+   "role": "AGS Finance Manager",
+   "permlevel": 0,
+   "read": 1,
+   "write": 0,
+   "create": 0,
+   "delete": 0,
+   "report": 1,
+   "export": 1,
+   "share": 1,
+   "print": 1,
+   "email": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "autoname": "hash",
+ "description": "Durable queue. The dispatcher drains it so a failing gateway never blocks a transaction."
+}

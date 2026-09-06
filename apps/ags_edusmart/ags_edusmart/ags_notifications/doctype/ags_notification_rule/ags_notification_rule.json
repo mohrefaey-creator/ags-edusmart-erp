@@ -1,0 +1,188 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-09-06 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "sb_head",
+  "title",
+  "is_active",
+  "document_type",
+  "cb_head",
+  "event",
+  "value_changed_field",
+  "condition",
+  "sb_to",
+  "recipient_type",
+  "recipient_role",
+  "recipient_field",
+  "cb_to",
+  "channels",
+  "priority",
+  "sb_msg",
+  "subject",
+  "message"
+ ],
+ "fields": [
+  {
+   "fieldname": "sb_head",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "is_active",
+   "fieldtype": "Check",
+   "label": "Active",
+   "default": "1",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "document_type",
+   "fieldtype": "Link",
+   "label": "Document Type",
+   "options": "DocType",
+   "reqd": 1,
+   "in_list_view": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "cb_head",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "event",
+   "fieldtype": "Select",
+   "label": "Event",
+   "options": "On Submit\nOn Cancel\nOn Update\nOn Create\nValue Change",
+   "reqd": 1,
+   "default": "On Submit",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "value_changed_field",
+   "fieldtype": "Data",
+   "label": "Value Changed Field",
+   "depends_on": "eval:doc.event=='Value Change'"
+  },
+  {
+   "fieldname": "condition",
+   "fieldtype": "Code",
+   "label": "Condition",
+   "options": "Python",
+   "description": "Optional Python expression over `doc`."
+  },
+  {
+   "fieldname": "sb_to",
+   "fieldtype": "Section Break",
+   "label": "Recipients"
+  },
+  {
+   "fieldname": "recipient_type",
+   "fieldtype": "Select",
+   "label": "Recipient Type",
+   "options": "Role\nDocument Owner\nField Value\nPayer Account\nEmployee\nApprover",
+   "default": "Role",
+   "reqd": 1
+  },
+  {
+   "fieldname": "recipient_role",
+   "fieldtype": "Link",
+   "label": "Role",
+   "options": "Role",
+   "depends_on": "eval:doc.recipient_type=='Role'"
+  },
+  {
+   "fieldname": "recipient_field",
+   "fieldtype": "Data",
+   "label": "Field",
+   "depends_on": "eval:doc.recipient_type=='Field Value'",
+   "description": "Fieldname holding a User, Employee or Payer Account."
+  },
+  {
+   "fieldname": "cb_to",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "channels",
+   "fieldtype": "Small Text",
+   "label": "Channels",
+   "default": "In-App",
+   "description": "Comma separated: In-App, Email, SMS, WhatsApp."
+  },
+  {
+   "fieldname": "priority",
+   "fieldtype": "Select",
+   "label": "Priority",
+   "options": "Low\nNormal\nHigh\nUrgent",
+   "default": "Normal"
+  },
+  {
+   "fieldname": "sb_msg",
+   "fieldtype": "Section Break",
+   "label": "Message"
+  },
+  {
+   "fieldname": "subject",
+   "fieldtype": "Data",
+   "label": "Subject",
+   "reqd": 1,
+   "description": "Jinja over `doc`. Example: PO {{ doc.name }} awaiting approval."
+  },
+  {
+   "fieldname": "message",
+   "fieldtype": "Text Editor",
+   "label": "Message",
+   "reqd": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-06 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "AGS Notifications",
+ "name": "AGS Notification Rule",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "permlevel": 0,
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "share": 1,
+   "print": 1,
+   "email": 1
+  },
+  {
+   "role": "AGS Finance Manager",
+   "permlevel": 0,
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 0,
+   "report": 1,
+   "export": 1,
+   "share": 1,
+   "print": 1,
+   "email": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "autoname": "field:title",
+ "track_changes": 1,
+ "title_field": "title",
+ "show_title_field_in_link": 1
+}

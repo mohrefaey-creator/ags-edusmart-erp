@@ -1,0 +1,450 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-09-06 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "sb_student",
+  "naming_series",
+  "student",
+  "student_name",
+  "payer_account",
+  "customer",
+  "cb_student",
+  "company",
+  "campus",
+  "school_division",
+  "status",
+  "sb_academic",
+  "academic_year",
+  "academic_term",
+  "cb_academic",
+  "program",
+  "student_category",
+  "program_enrollment",
+  "sb_structure",
+  "fee_structure",
+  "components",
+  "sb_discounts",
+  "auto_apply_discounts",
+  "discounts",
+  "sb_schedule",
+  "schedule_type",
+  "number_of_installments",
+  "cb_schedule",
+  "first_due_date",
+  "installment_gap_days",
+  "installments",
+  "sb_totals",
+  "gross_total",
+  "discount_total",
+  "net_total",
+  "cb_totals",
+  "invoiced_total",
+  "paid_total",
+  "outstanding_total",
+  "currency",
+  "sb_accounting",
+  "cost_center",
+  "cb_accounting",
+  "receivable_account",
+  "sb_amend",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "sb_student",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "AGS-FP-.YYYY.-.#####",
+   "default": "AGS-FP-.YYYY.-.#####",
+   "reqd": 1,
+   "hidden": 1
+  },
+  {
+   "fieldname": "student",
+   "fieldtype": "Link",
+   "label": "Student",
+   "options": "Student",
+   "reqd": 1,
+   "in_list_view": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "student_name",
+   "fieldtype": "Data",
+   "label": "Student Name",
+   "fetch_from": "student.student_name",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "payer_account",
+   "fieldtype": "Link",
+   "label": "Payer Account",
+   "options": "AGS Payer Account",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Data",
+   "label": "Customer",
+   "fetch_from": "payer_account.customer",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cb_student",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "campus",
+   "fieldtype": "Link",
+   "label": "Campus",
+   "options": "AGS Campus",
+   "search_index": 1
+  },
+  {
+   "fieldname": "school_division",
+   "fieldtype": "Link",
+   "label": "School Division",
+   "options": "AGS School Division"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Draft\nActive\nCompleted\nOn Hold\nCancelled",
+   "default": "Draft",
+   "read_only": 1,
+   "in_list_view": 1,
+   "allow_on_submit": 1
+  },
+  {
+   "fieldname": "sb_academic",
+   "fieldtype": "Section Break",
+   "label": "Academic"
+  },
+  {
+   "fieldname": "academic_year",
+   "fieldtype": "Link",
+   "label": "Academic Year",
+   "options": "Academic Year",
+   "reqd": 1,
+   "in_list_view": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "academic_term",
+   "fieldtype": "Link",
+   "label": "Academic Term",
+   "options": "Academic Term"
+  },
+  {
+   "fieldname": "cb_academic",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "program",
+   "fieldtype": "Link",
+   "label": "Grade",
+   "options": "Program",
+   "reqd": 1
+  },
+  {
+   "fieldname": "student_category",
+   "fieldtype": "Link",
+   "label": "Student Category",
+   "options": "Student Category"
+  },
+  {
+   "fieldname": "program_enrollment",
+   "fieldtype": "Link",
+   "label": "Program Enrollment",
+   "options": "Program Enrollment",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sb_structure",
+   "fieldtype": "Section Break",
+   "label": "Fee Structure"
+  },
+  {
+   "fieldname": "fee_structure",
+   "fieldtype": "Link",
+   "label": "Fee Structure",
+   "options": "Fee Structure",
+   "description": "Pulls the component lines. Amounts stay editable per student."
+  },
+  {
+   "fieldname": "components",
+   "fieldtype": "Table",
+   "label": "Fee Components",
+   "options": "AGS Fee Plan Component"
+  },
+  {
+   "fieldname": "sb_discounts",
+   "fieldtype": "Section Break",
+   "label": "Discounts"
+  },
+  {
+   "fieldname": "auto_apply_discounts",
+   "fieldtype": "Check",
+   "label": "Auto-Apply Matching Discount Rules",
+   "default": "1"
+  },
+  {
+   "fieldname": "discounts",
+   "fieldtype": "Table",
+   "label": "Discounts",
+   "options": "AGS Fee Plan Discount",
+   "allow_on_submit": 1
+  },
+  {
+   "fieldname": "sb_schedule",
+   "fieldtype": "Section Break",
+   "label": "Payment Schedule"
+  },
+  {
+   "fieldname": "schedule_type",
+   "fieldtype": "Select",
+   "label": "Schedule Type",
+   "options": "Annual\nBy Term\nQuarterly\nMonthly\nCustom",
+   "default": "By Term",
+   "reqd": 1
+  },
+  {
+   "fieldname": "number_of_installments",
+   "fieldtype": "Int",
+   "label": "Number of Installments",
+   "default": "3",
+   "depends_on": "eval:doc.schedule_type=='Custom'"
+  },
+  {
+   "fieldname": "cb_schedule",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "first_due_date",
+   "fieldtype": "Date",
+   "label": "First Due Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "installment_gap_days",
+   "fieldtype": "Int",
+   "label": "Custom Gap (days)",
+   "default": "30",
+   "depends_on": "eval:doc.schedule_type=='Custom'"
+  },
+  {
+   "fieldname": "installments",
+   "fieldtype": "Table",
+   "label": "Installments",
+   "options": "AGS Fee Plan Installment",
+   "allow_on_submit": 1
+  },
+  {
+   "fieldname": "sb_totals",
+   "fieldtype": "Section Break",
+   "label": "Totals"
+  },
+  {
+   "fieldname": "gross_total",
+   "fieldtype": "Currency",
+   "label": "Gross Total",
+   "read_only": 1,
+   "options": "currency",
+   "allow_on_submit": 1
+  },
+  {
+   "fieldname": "discount_total",
+   "fieldtype": "Currency",
+   "label": "Discount Total",
+   "read_only": 1,
+   "options": "currency",
+   "allow_on_submit": 1
+  },
+  {
+   "fieldname": "net_total",
+   "fieldtype": "Currency",
+   "label": "Net Payable",
+   "read_only": 1,
+   "options": "currency",
+   "bold": 1,
+   "in_list_view": 1,
+   "allow_on_submit": 1
+  },
+  {
+   "fieldname": "cb_totals",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "invoiced_total",
+   "fieldtype": "Currency",
+   "label": "Invoiced",
+   "read_only": 1,
+   "options": "currency",
+   "allow_on_submit": 1
+  },
+  {
+   "fieldname": "paid_total",
+   "fieldtype": "Currency",
+   "label": "Paid",
+   "read_only": 1,
+   "options": "currency",
+   "allow_on_submit": 1
+  },
+  {
+   "fieldname": "outstanding_total",
+   "fieldtype": "Currency",
+   "label": "Outstanding",
+   "read_only": 1,
+   "options": "currency",
+   "allow_on_submit": 1
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Currency",
+   "options": "Currency",
+   "default": "SAR",
+   "hidden": 1
+  },
+  {
+   "fieldname": "sb_accounting",
+   "fieldtype": "Section Break",
+   "label": "Accounting"
+  },
+  {
+   "fieldname": "cost_center",
+   "fieldtype": "Link",
+   "label": "Cost Center",
+   "options": "Cost Center"
+  },
+  {
+   "fieldname": "cb_accounting",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "receivable_account",
+   "fieldtype": "Link",
+   "label": "Receivable Account",
+   "options": "Account"
+  },
+  {
+   "fieldname": "sb_amend",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "options": "AGS Fee Plan",
+   "read_only": 1,
+   "no_copy": 1,
+   "print_hide": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-06 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "AGS Fees",
+ "name": "AGS Fee Plan",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "permlevel": 0,
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "share": 1,
+   "print": 1,
+   "email": 1
+  },
+  {
+   "role": "AGS Finance Manager",
+   "permlevel": 0,
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "share": 1,
+   "print": 1,
+   "email": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1
+  },
+  {
+   "role": "AGS Accountant",
+   "permlevel": 0,
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 0,
+   "report": 1,
+   "export": 1,
+   "share": 1,
+   "print": 1,
+   "email": 1,
+   "submit": 1
+  },
+  {
+   "role": "AGS Principal",
+   "permlevel": 0,
+   "read": 1,
+   "write": 0,
+   "create": 0,
+   "delete": 0,
+   "report": 1,
+   "export": 1,
+   "share": 1,
+   "print": 1,
+   "email": 1
+  },
+  {
+   "role": "AGS Group Executive",
+   "permlevel": 0,
+   "read": 1,
+   "write": 0,
+   "create": 0,
+   "delete": 0,
+   "report": 1,
+   "export": 1,
+   "share": 1,
+   "print": 1,
+   "email": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "autoname": "naming_series:",
+ "is_submittable": 1,
+ "track_changes": 1,
+ "title_field": "student_name",
+ "show_title_field_in_link": 1,
+ "search_fields": "student,payer_account,academic_year",
+ "description": "Student-specific priced plan: structure + discounts + installments (SKILL sec. 17.5)."
+}

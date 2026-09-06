@@ -1,0 +1,351 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-09-06 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "sb_case",
+  "naming_series",
+  "payer_account",
+  "payer_name",
+  "customer",
+  "cb_case",
+  "company",
+  "campus",
+  "academic_year",
+  "status",
+  "sb_amounts",
+  "total_billed",
+  "total_paid",
+  "outstanding",
+  "cb_amounts",
+  "overdue",
+  "oldest_due_date",
+  "days_overdue",
+  "sb_ageing",
+  "bucket_current",
+  "bucket_1_30",
+  "bucket_31_60",
+  "cb_ageing",
+  "bucket_61_90",
+  "bucket_91_120",
+  "bucket_120_plus",
+  "sb_owner",
+  "assigned_to",
+  "next_action_date",
+  "cb_owner",
+  "escalation_level",
+  "last_refreshed_on",
+  "sb_actions",
+  "actions"
+ ],
+ "fields": [
+  {
+   "fieldname": "sb_case",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "AGS-COL-.YYYY.-.#####",
+   "default": "AGS-COL-.YYYY.-.#####",
+   "reqd": 1,
+   "hidden": 1
+  },
+  {
+   "fieldname": "payer_account",
+   "fieldtype": "Link",
+   "label": "Payer Account",
+   "options": "AGS Payer Account",
+   "reqd": 1,
+   "in_list_view": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "payer_name",
+   "fieldtype": "Data",
+   "label": "Payer",
+   "fetch_from": "payer_account.payer_name",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Data",
+   "label": "Customer",
+   "fetch_from": "payer_account.customer",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cb_case",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "campus",
+   "fieldtype": "Link",
+   "label": "Campus",
+   "options": "AGS Campus",
+   "search_index": 1
+  },
+  {
+   "fieldname": "academic_year",
+   "fieldtype": "Link",
+   "label": "Academic Year",
+   "options": "Academic Year"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Open\nIn Progress\nPromise To Pay\nEscalated\nResolved\nWritten Off",
+   "default": "Open",
+   "in_list_view": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "sb_amounts",
+   "fieldtype": "Section Break",
+   "label": "Exposure"
+  },
+  {
+   "fieldname": "total_billed",
+   "fieldtype": "Currency",
+   "label": "Total Billed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_paid",
+   "fieldtype": "Currency",
+   "label": "Total Paid",
+   "read_only": 1
+  },
+  {
+   "fieldname": "outstanding",
+   "fieldtype": "Currency",
+   "label": "Outstanding",
+   "read_only": 1,
+   "in_list_view": 1,
+   "bold": 1
+  },
+  {
+   "fieldname": "cb_amounts",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "overdue",
+   "fieldtype": "Currency",
+   "label": "Overdue",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "oldest_due_date",
+   "fieldtype": "Date",
+   "label": "Oldest Due Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "days_overdue",
+   "fieldtype": "Int",
+   "label": "Days Overdue",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "sb_ageing",
+   "fieldtype": "Section Break",
+   "label": "Ageing Buckets"
+  },
+  {
+   "fieldname": "bucket_current",
+   "fieldtype": "Currency",
+   "label": "Current",
+   "read_only": 1
+  },
+  {
+   "fieldname": "bucket_1_30",
+   "fieldtype": "Currency",
+   "label": "1-30 Days",
+   "read_only": 1
+  },
+  {
+   "fieldname": "bucket_31_60",
+   "fieldtype": "Currency",
+   "label": "31-60 Days",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cb_ageing",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "bucket_61_90",
+   "fieldtype": "Currency",
+   "label": "61-90 Days",
+   "read_only": 1
+  },
+  {
+   "fieldname": "bucket_91_120",
+   "fieldtype": "Currency",
+   "label": "91-120 Days",
+   "read_only": 1
+  },
+  {
+   "fieldname": "bucket_120_plus",
+   "fieldtype": "Currency",
+   "label": "Over 120 Days",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sb_owner",
+   "fieldtype": "Section Break",
+   "label": "Ownership"
+  },
+  {
+   "fieldname": "assigned_to",
+   "fieldtype": "Link",
+   "label": "Collector",
+   "options": "User",
+   "search_index": 1
+  },
+  {
+   "fieldname": "next_action_date",
+   "fieldtype": "Date",
+   "label": "Next Action Date"
+  },
+  {
+   "fieldname": "cb_owner",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "escalation_level",
+   "fieldtype": "Int",
+   "label": "Escalation Level",
+   "default": "0",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_refreshed_on",
+   "fieldtype": "Datetime",
+   "label": "Last Refreshed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sb_actions",
+   "fieldtype": "Section Break",
+   "label": "Contact Log"
+  },
+  {
+   "fieldname": "actions",
+   "fieldtype": "Table",
+   "label": "Actions",
+   "options": "AGS Collection Action"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-06 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "AGS Collections",
+ "name": "AGS Collection Case",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "permlevel": 0,
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "share": 1,
+   "print": 1,
+   "email": 1
+  },
+  {
+   "role": "AGS Finance Manager",
+   "permlevel": 0,
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "share": 1,
+   "print": 1,
+   "email": 1
+  },
+  {
+   "role": "AGS Collections Officer",
+   "permlevel": 0,
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 0,
+   "report": 1,
+   "export": 1,
+   "share": 1,
+   "print": 1,
+   "email": 1
+  },
+  {
+   "role": "AGS Accountant",
+   "permlevel": 0,
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 0,
+   "report": 1,
+   "export": 1,
+   "share": 1,
+   "print": 1,
+   "email": 1
+  },
+  {
+   "role": "AGS Principal",
+   "permlevel": 0,
+   "read": 1,
+   "write": 0,
+   "create": 0,
+   "delete": 0,
+   "report": 1,
+   "export": 1,
+   "share": 1,
+   "print": 1,
+   "email": 1
+  },
+  {
+   "role": "AGS Group Executive",
+   "permlevel": 0,
+   "read": 1,
+   "write": 0,
+   "create": 0,
+   "delete": 0,
+   "report": 1,
+   "export": 1,
+   "share": 1,
+   "print": 1,
+   "email": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "autoname": "naming_series:",
+ "track_changes": 1,
+ "title_field": "payer_name",
+ "show_title_field_in_link": 1,
+ "search_fields": "payer_account,status,assigned_to",
+ "description": "Live receivable case per payer, refreshed nightly from the AR ledger (SKILL sec. 20)."
+}

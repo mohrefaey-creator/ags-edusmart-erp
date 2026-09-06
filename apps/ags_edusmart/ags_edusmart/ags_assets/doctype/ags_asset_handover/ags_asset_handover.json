@@ -1,0 +1,331 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-09-06 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "sb_head",
+  "naming_series",
+  "handover_date",
+  "handover_type",
+  "company",
+  "cb_head",
+  "campus",
+  "department",
+  "room",
+  "sb_parties",
+  "from_employee",
+  "from_location",
+  "cb_parties",
+  "to_employee",
+  "to_employee_name",
+  "to_location",
+  "sb_assets",
+  "assets",
+  "sb_ack",
+  "requires_acknowledgement",
+  "acknowledged",
+  "acknowledged_by",
+  "cb_ack",
+  "acknowledged_on",
+  "return_due_date",
+  "terms",
+  "sb_result",
+  "asset_movement",
+  "cb_result",
+  "status",
+  "sb_amend",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "sb_head",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "AGS-AHO-.YYYY.-.#####",
+   "default": "AGS-AHO-.YYYY.-.#####",
+   "reqd": 1,
+   "hidden": 1
+  },
+  {
+   "fieldname": "handover_date",
+   "fieldtype": "Date",
+   "label": "Date",
+   "reqd": 1,
+   "default": "Today",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "handover_type",
+   "fieldtype": "Select",
+   "label": "Type",
+   "options": "Issue To Employee\nReturn To Store\nTransfer Between Employees",
+   "default": "Issue To Employee",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "cb_head",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "campus",
+   "fieldtype": "Link",
+   "label": "Campus",
+   "options": "AGS Campus",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "department",
+   "fieldtype": "Link",
+   "label": "Department",
+   "options": "Department"
+  },
+  {
+   "fieldname": "room",
+   "fieldtype": "Data",
+   "label": "Room / Location"
+  },
+  {
+   "fieldname": "sb_parties",
+   "fieldtype": "Section Break",
+   "label": "Parties"
+  },
+  {
+   "fieldname": "from_employee",
+   "fieldtype": "Link",
+   "label": "From Employee",
+   "options": "Employee",
+   "depends_on": "eval:doc.handover_type!='Issue To Employee'"
+  },
+  {
+   "fieldname": "from_location",
+   "fieldtype": "Link",
+   "label": "From Location",
+   "options": "Location"
+  },
+  {
+   "fieldname": "cb_parties",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "to_employee",
+   "fieldtype": "Link",
+   "label": "To Employee",
+   "options": "Employee",
+   "depends_on": "eval:doc.handover_type!='Return To Store'",
+   "in_list_view": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "to_employee_name",
+   "fieldtype": "Data",
+   "label": "Name",
+   "fetch_from": "to_employee.employee_name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "to_location",
+   "fieldtype": "Link",
+   "label": "To Location",
+   "options": "Location",
+   "depends_on": "eval:doc.handover_type=='Return To Store'"
+  },
+  {
+   "fieldname": "sb_assets",
+   "fieldtype": "Section Break",
+   "label": "Assets"
+  },
+  {
+   "fieldname": "assets",
+   "fieldtype": "Table",
+   "label": "Assets",
+   "options": "AGS Asset Handover Item",
+   "reqd": 1
+  },
+  {
+   "fieldname": "sb_ack",
+   "fieldtype": "Section Break",
+   "label": "Acknowledgement"
+  },
+  {
+   "fieldname": "requires_acknowledgement",
+   "fieldtype": "Check",
+   "label": "Requires Employee Acknowledgement",
+   "default": "1"
+  },
+  {
+   "fieldname": "acknowledged",
+   "fieldtype": "Check",
+   "label": "Acknowledged",
+   "read_only": 1,
+   "default": "0",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "acknowledged_by",
+   "fieldtype": "Link",
+   "label": "Acknowledged By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cb_ack",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "acknowledged_on",
+   "fieldtype": "Datetime",
+   "label": "Acknowledged On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "return_due_date",
+   "fieldtype": "Date",
+   "label": "Return Due Date"
+  },
+  {
+   "fieldname": "terms",
+   "fieldtype": "Text",
+   "label": "Terms Of Custody"
+  },
+  {
+   "fieldname": "sb_result",
+   "fieldtype": "Section Break",
+   "label": "Result"
+  },
+  {
+   "fieldname": "asset_movement",
+   "fieldtype": "Link",
+   "label": "Asset Movement",
+   "options": "Asset Movement",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cb_result",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Draft\nPending Acknowledgement\nActive\nReturned\nCancelled",
+   "default": "Draft",
+   "read_only": 1,
+   "in_list_view": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "sb_amend",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "options": "AGS Asset Handover",
+   "read_only": 1,
+   "no_copy": 1,
+   "print_hide": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-06 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "AGS Assets",
+ "name": "AGS Asset Handover",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "permlevel": 0,
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "share": 1,
+   "print": 1,
+   "email": 1
+  },
+  {
+   "role": "AGS Asset Manager",
+   "permlevel": 0,
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "share": 1,
+   "print": 1,
+   "email": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1
+  },
+  {
+   "role": "AGS Storekeeper",
+   "permlevel": 0,
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 0,
+   "report": 1,
+   "export": 1,
+   "share": 1,
+   "print": 1,
+   "email": 1,
+   "submit": 1
+  },
+  {
+   "role": "AGS HR Manager",
+   "permlevel": 0,
+   "read": 1,
+   "write": 0,
+   "create": 0,
+   "delete": 0,
+   "report": 1,
+   "export": 1,
+   "share": 1,
+   "print": 1,
+   "email": 1
+  },
+  {
+   "role": "Employee",
+   "permlevel": 0,
+   "read": 1,
+   "write": 0,
+   "create": 0,
+   "delete": 0,
+   "report": 1,
+   "export": 1,
+   "share": 1,
+   "print": 1,
+   "email": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "autoname": "naming_series:",
+ "is_submittable": 1,
+ "track_changes": 1,
+ "description": "Custody transfer with digital acknowledgement. Blocks separation while open (SKILL sec. 10.4)."
+}

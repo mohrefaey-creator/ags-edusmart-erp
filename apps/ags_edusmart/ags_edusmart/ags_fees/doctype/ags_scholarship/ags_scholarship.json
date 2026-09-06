@@ -1,0 +1,245 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-09-06 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "sb_identity",
+  "scholarship_name",
+  "sponsor",
+  "scholarship_type",
+  "cb_identity",
+  "company",
+  "campus",
+  "academic_year",
+  "is_active",
+  "sb_coverage",
+  "calculation",
+  "value",
+  "cb_coverage",
+  "max_amount_per_student",
+  "apply_to_all_components",
+  "components",
+  "sb_budget",
+  "budget_amount",
+  "cb_budget",
+  "allocated_amount",
+  "remaining_amount",
+  "sb_validity",
+  "valid_from",
+  "cb_validity2",
+  "valid_to"
+ ],
+ "fields": [
+  {
+   "fieldname": "sb_identity",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "scholarship_name",
+   "fieldtype": "Data",
+   "label": "Scholarship Name",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "sponsor",
+   "fieldtype": "Data",
+   "label": "Sponsor"
+  },
+  {
+   "fieldname": "scholarship_type",
+   "fieldtype": "Select",
+   "label": "Type",
+   "options": "Full\nPartial\nMerit\nNeed Based\nCorporate\nStaff",
+   "default": "Partial",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "cb_identity",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "campus",
+   "fieldtype": "Link",
+   "label": "Campus",
+   "options": "AGS Campus"
+  },
+  {
+   "fieldname": "academic_year",
+   "fieldtype": "Link",
+   "label": "Academic Year",
+   "options": "Academic Year",
+   "reqd": 1
+  },
+  {
+   "fieldname": "is_active",
+   "fieldtype": "Check",
+   "label": "Active",
+   "default": "1"
+  },
+  {
+   "fieldname": "sb_coverage",
+   "fieldtype": "Section Break",
+   "label": "Coverage"
+  },
+  {
+   "fieldname": "calculation",
+   "fieldtype": "Select",
+   "label": "Calculation",
+   "options": "Percent\nFixed Amount",
+   "default": "Percent",
+   "reqd": 1
+  },
+  {
+   "fieldname": "value",
+   "fieldtype": "Float",
+   "label": "Value",
+   "reqd": 1
+  },
+  {
+   "fieldname": "cb_coverage",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "max_amount_per_student",
+   "fieldtype": "Currency",
+   "label": "Maximum Per Student"
+  },
+  {
+   "fieldname": "apply_to_all_components",
+   "fieldtype": "Check",
+   "label": "Apply To All Fee Components",
+   "default": "0"
+  },
+  {
+   "fieldname": "components",
+   "fieldtype": "Table",
+   "label": "Eligible Fee Categories",
+   "options": "AGS Discount Rule Component",
+   "depends_on": "eval:!doc.apply_to_all_components"
+  },
+  {
+   "fieldname": "sb_budget",
+   "fieldtype": "Section Break",
+   "label": "Budget"
+  },
+  {
+   "fieldname": "budget_amount",
+   "fieldtype": "Currency",
+   "label": "Budget Amount"
+  },
+  {
+   "fieldname": "cb_budget",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "allocated_amount",
+   "fieldtype": "Currency",
+   "label": "Allocated",
+   "read_only": 1
+  },
+  {
+   "fieldname": "remaining_amount",
+   "fieldtype": "Currency",
+   "label": "Remaining",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sb_validity",
+   "fieldtype": "Section Break",
+   "label": "Validity"
+  },
+  {
+   "fieldname": "valid_from",
+   "fieldtype": "Date",
+   "label": "Valid From"
+  },
+  {
+   "fieldname": "cb_validity2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "valid_to",
+   "fieldtype": "Date",
+   "label": "Valid To"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-06 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "AGS Fees",
+ "name": "AGS Scholarship",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "permlevel": 0,
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "share": 1,
+   "print": 1,
+   "email": 1
+  },
+  {
+   "role": "AGS Finance Manager",
+   "permlevel": 0,
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "share": 1,
+   "print": 1,
+   "email": 1
+  },
+  {
+   "role": "AGS Accountant",
+   "permlevel": 0,
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 0,
+   "report": 1,
+   "export": 1,
+   "share": 1,
+   "print": 1,
+   "email": 1
+  },
+  {
+   "role": "AGS Group Executive",
+   "permlevel": 0,
+   "read": 1,
+   "write": 0,
+   "create": 0,
+   "delete": 0,
+   "report": 1,
+   "export": 1,
+   "share": 1,
+   "print": 1,
+   "email": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "autoname": "field:scholarship_name",
+ "track_changes": 1,
+ "title_field": "scholarship_name",
+ "show_title_field_in_link": 1
+}

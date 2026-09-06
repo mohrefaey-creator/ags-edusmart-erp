@@ -1,0 +1,271 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-09-06 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "sb_org",
+  "default_company",
+  "default_campus",
+  "cb_org",
+  "current_academic_year",
+  "sb_revenue",
+  "enable_deferred_revenue",
+  "deferred_revenue_account",
+  "cb_revenue",
+  "recognition_basis",
+  "sb_budget",
+  "enable_commitment_accounting",
+  "commitment_action",
+  "sb_fees",
+  "enable_late_fees",
+  "late_fee_item",
+  "late_fee_grace_days",
+  "cb_fees",
+  "late_fee_type",
+  "late_fee_value",
+  "consolidate_sibling_invoices",
+  "sb_notify",
+  "enable_notifications",
+  "default_channels",
+  "cb_notify",
+  "sms_gateway_url",
+  "whatsapp_gateway_url",
+  "sb_zatca",
+  "enable_zatca",
+  "default_vat_rate",
+  "cb_zatca",
+  "enable_gosi"
+ ],
+ "fields": [
+  {
+   "fieldname": "sb_org",
+   "fieldtype": "Section Break",
+   "label": "Organisation"
+  },
+  {
+   "fieldname": "default_company",
+   "fieldtype": "Link",
+   "label": "Default Company",
+   "options": "Company"
+  },
+  {
+   "fieldname": "default_campus",
+   "fieldtype": "Link",
+   "label": "Default Campus",
+   "options": "AGS Campus"
+  },
+  {
+   "fieldname": "cb_org",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "current_academic_year",
+   "fieldtype": "Link",
+   "label": "Current Academic Year",
+   "options": "Academic Year"
+  },
+  {
+   "fieldname": "sb_revenue",
+   "fieldtype": "Section Break",
+   "label": "Revenue Recognition"
+  },
+  {
+   "fieldname": "enable_deferred_revenue",
+   "fieldtype": "Check",
+   "label": "Enable Deferred Tuition Revenue",
+   "default": "1",
+   "description": "Tuition collected up front is parked in a liability and released monthly (SKILL sec. 5.4)."
+  },
+  {
+   "fieldname": "deferred_revenue_account",
+   "fieldtype": "Link",
+   "label": "Deferred Tuition Revenue Account",
+   "options": "Account",
+   "depends_on": "enable_deferred_revenue"
+  },
+  {
+   "fieldname": "cb_revenue",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "recognition_basis",
+   "fieldtype": "Select",
+   "label": "Recognition Basis",
+   "options": "Monthly Straight Line\nBy Academic Term\nBy Teaching Days",
+   "default": "Monthly Straight Line",
+   "depends_on": "enable_deferred_revenue"
+  },
+  {
+   "fieldname": "sb_budget",
+   "fieldtype": "Section Break",
+   "label": "Budget Control"
+  },
+  {
+   "fieldname": "enable_commitment_accounting",
+   "fieldtype": "Check",
+   "label": "Enable Commitment Accounting",
+   "default": "1",
+   "description": "Approved requests and open orders consume budget before the invoice lands (SKILL sec. 7.1)."
+  },
+  {
+   "fieldname": "commitment_action",
+   "fieldtype": "Select",
+   "label": "Action If Committed Budget Exceeded",
+   "options": "Warn\nStop\nRequire Override Approval",
+   "default": "Warn",
+   "depends_on": "enable_commitment_accounting"
+  },
+  {
+   "fieldname": "sb_fees",
+   "fieldtype": "Section Break",
+   "label": "Fees & Collections"
+  },
+  {
+   "fieldname": "enable_late_fees",
+   "fieldtype": "Check",
+   "label": "Enable Late Fees",
+   "default": "0"
+  },
+  {
+   "fieldname": "late_fee_item",
+   "fieldtype": "Link",
+   "label": "Late Fee Item",
+   "options": "Item",
+   "depends_on": "enable_late_fees"
+  },
+  {
+   "fieldname": "late_fee_grace_days",
+   "fieldtype": "Int",
+   "label": "Grace Days",
+   "default": "7",
+   "depends_on": "enable_late_fees"
+  },
+  {
+   "fieldname": "cb_fees",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "late_fee_type",
+   "fieldtype": "Select",
+   "label": "Late Fee Type",
+   "options": "Fixed Amount\nPercent of Overdue",
+   "default": "Fixed Amount",
+   "depends_on": "enable_late_fees"
+  },
+  {
+   "fieldname": "late_fee_value",
+   "fieldtype": "Float",
+   "label": "Late Fee Value",
+   "depends_on": "enable_late_fees"
+  },
+  {
+   "fieldname": "consolidate_sibling_invoices",
+   "fieldtype": "Check",
+   "label": "Consolidate Sibling Invoices on Payer",
+   "default": "0"
+  },
+  {
+   "fieldname": "sb_notify",
+   "fieldtype": "Section Break",
+   "label": "Notifications"
+  },
+  {
+   "fieldname": "enable_notifications",
+   "fieldtype": "Check",
+   "label": "Enable Notification Engine",
+   "default": "1"
+  },
+  {
+   "fieldname": "default_channels",
+   "fieldtype": "Small Text",
+   "label": "Default Channels",
+   "default": "In-App, Email",
+   "description": "Comma separated. Supported: In-App, Email, SMS, WhatsApp."
+  },
+  {
+   "fieldname": "cb_notify",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "sms_gateway_url",
+   "fieldtype": "Data",
+   "label": "SMS Gateway URL"
+  },
+  {
+   "fieldname": "whatsapp_gateway_url",
+   "fieldtype": "Data",
+   "label": "WhatsApp Gateway URL"
+  },
+  {
+   "fieldname": "sb_zatca",
+   "fieldtype": "Section Break",
+   "label": "Saudi Localization"
+  },
+  {
+   "fieldname": "enable_zatca",
+   "fieldtype": "Check",
+   "label": "Enable ZATCA e-Invoicing",
+   "default": "0",
+   "description": "Phase-2 clearance. Requires certificates in AGS ZATCA Settings."
+  },
+  {
+   "fieldname": "default_vat_rate",
+   "fieldtype": "Percent",
+   "label": "Default VAT Rate",
+   "default": "15"
+  },
+  {
+   "fieldname": "cb_zatca",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "enable_gosi",
+   "fieldtype": "Check",
+   "label": "Enable GOSI Payroll Components",
+   "default": "1"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-06 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "AGS Core",
+ "name": "AGS Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "permlevel": 0,
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "share": 1,
+   "print": 1,
+   "email": 1
+  },
+  {
+   "role": "AGS Finance Manager",
+   "permlevel": 0,
+   "read": 1,
+   "write": 0,
+   "create": 0,
+   "delete": 0,
+   "report": 1,
+   "export": 1,
+   "share": 1,
+   "print": 1,
+   "email": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "issingle": 1,
+ "track_changes": 1
+}

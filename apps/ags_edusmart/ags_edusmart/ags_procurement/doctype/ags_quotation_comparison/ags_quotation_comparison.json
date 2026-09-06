@@ -1,0 +1,271 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-09-06 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "sb_head",
+  "naming_series",
+  "title",
+  "material_request",
+  "request_for_quotation",
+  "cb_head",
+  "company",
+  "campus",
+  "department",
+  "comparison_date",
+  "sb_weights",
+  "weight_price",
+  "weight_delivery",
+  "cb_weights",
+  "weight_warranty",
+  "weight_rating",
+  "sb_suppliers",
+  "suppliers",
+  "sb_award",
+  "recommended_supplier",
+  "awarded_supplier",
+  "cb_award",
+  "purchase_order",
+  "status",
+  "justification"
+ ],
+ "fields": [
+  {
+   "fieldname": "sb_head",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "AGS-QC-.YYYY.-.#####",
+   "default": "AGS-QC-.YYYY.-.#####",
+   "reqd": 1,
+   "hidden": 1
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "material_request",
+   "fieldtype": "Link",
+   "label": "Purchase Request",
+   "options": "Material Request",
+   "search_index": 1
+  },
+  {
+   "fieldname": "request_for_quotation",
+   "fieldtype": "Link",
+   "label": "RFQ",
+   "options": "Request for Quotation"
+  },
+  {
+   "fieldname": "cb_head",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "campus",
+   "fieldtype": "Link",
+   "label": "Campus",
+   "options": "AGS Campus",
+   "search_index": 1
+  },
+  {
+   "fieldname": "department",
+   "fieldtype": "Link",
+   "label": "Department",
+   "options": "Department"
+  },
+  {
+   "fieldname": "comparison_date",
+   "fieldtype": "Date",
+   "label": "Date",
+   "default": "Today",
+   "reqd": 1
+  },
+  {
+   "fieldname": "sb_weights",
+   "fieldtype": "Section Break",
+   "label": "Scoring Weights"
+  },
+  {
+   "fieldname": "weight_price",
+   "fieldtype": "Percent",
+   "label": "Price",
+   "default": "50"
+  },
+  {
+   "fieldname": "weight_delivery",
+   "fieldtype": "Percent",
+   "label": "Delivery",
+   "default": "20"
+  },
+  {
+   "fieldname": "cb_weights",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "weight_warranty",
+   "fieldtype": "Percent",
+   "label": "Warranty",
+   "default": "15"
+  },
+  {
+   "fieldname": "weight_rating",
+   "fieldtype": "Percent",
+   "label": "Supplier Rating",
+   "default": "15"
+  },
+  {
+   "fieldname": "sb_suppliers",
+   "fieldtype": "Section Break",
+   "label": "Suppliers"
+  },
+  {
+   "fieldname": "suppliers",
+   "fieldtype": "Table",
+   "label": "Suppliers",
+   "options": "AGS Quotation Comparison Supplier"
+  },
+  {
+   "fieldname": "sb_award",
+   "fieldtype": "Section Break",
+   "label": "Award"
+  },
+  {
+   "fieldname": "recommended_supplier",
+   "fieldtype": "Link",
+   "label": "System Recommendation",
+   "options": "Supplier",
+   "read_only": 1,
+   "description": "Weighted score only. The award below stays a human decision (SKILL sec. 8.4)."
+  },
+  {
+   "fieldname": "awarded_supplier",
+   "fieldtype": "Link",
+   "label": "Awarded Supplier",
+   "options": "Supplier"
+  },
+  {
+   "fieldname": "cb_award",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "purchase_order",
+   "fieldtype": "Link",
+   "label": "Purchase Order",
+   "options": "Purchase Order",
+   "read_only": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Draft\nAwaiting Award\nAwarded\nCancelled",
+   "default": "Draft",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "justification",
+   "fieldtype": "Text",
+   "label": "Award Justification",
+   "description": "Required when the award differs from the recommendation."
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-06 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "AGS Procurement",
+ "name": "AGS Quotation Comparison",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "permlevel": 0,
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "share": 1,
+   "print": 1,
+   "email": 1
+  },
+  {
+   "role": "AGS Procurement Manager",
+   "permlevel": 0,
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "share": 1,
+   "print": 1,
+   "email": 1
+  },
+  {
+   "role": "AGS Procurement Officer",
+   "permlevel": 0,
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 0,
+   "report": 1,
+   "export": 1,
+   "share": 1,
+   "print": 1,
+   "email": 1
+  },
+  {
+   "role": "AGS Finance Manager",
+   "permlevel": 0,
+   "read": 1,
+   "write": 0,
+   "create": 0,
+   "delete": 0,
+   "report": 1,
+   "export": 1,
+   "share": 1,
+   "print": 1,
+   "email": 1
+  },
+  {
+   "role": "AGS Principal",
+   "permlevel": 0,
+   "read": 1,
+   "write": 0,
+   "create": 0,
+   "delete": 0,
+   "report": 1,
+   "export": 1,
+   "share": 1,
+   "print": 1,
+   "email": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "autoname": "naming_series:",
+ "track_changes": 1,
+ "title_field": "title",
+ "show_title_field_in_link": 1
+}

@@ -1,0 +1,259 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-09-06 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "sb_head",
+  "kpi_name",
+  "code",
+  "category",
+  "cb_head",
+  "unit",
+  "is_active",
+  "direction",
+  "sb_calc",
+  "source",
+  "method_path",
+  "sql_query",
+  "cb_calc",
+  "refresh_interval_minutes",
+  "target_value",
+  "warning_threshold",
+  "sb_drill",
+  "drilldown_company",
+  "drilldown_campus",
+  "drilldown_division",
+  "cb_drill",
+  "drilldown_program",
+  "drilldown_department",
+  "drilldown_academic_year",
+  "sb_roles",
+  "roles",
+  "description"
+ ],
+ "fields": [
+  {
+   "fieldname": "sb_head",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "kpi_name",
+   "fieldtype": "Data",
+   "label": "KPI Name",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "code",
+   "fieldtype": "Data",
+   "label": "Code",
+   "reqd": 1,
+   "unique": 1,
+   "in_list_view": 1,
+   "description": "Stable machine key, e.g. revenue_per_student."
+  },
+  {
+   "fieldname": "category",
+   "fieldtype": "Select",
+   "label": "Category",
+   "options": "Finance\nCollections\nProcurement\nInventory\nHR\nAcademic\nExecutive",
+   "reqd": 1,
+   "in_list_view": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "cb_head",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "unit",
+   "fieldtype": "Select",
+   "label": "Unit",
+   "options": "Currency\nNumber\nPercent\nRatio\nDays",
+   "default": "Number"
+  },
+  {
+   "fieldname": "is_active",
+   "fieldtype": "Check",
+   "label": "Active",
+   "default": "1"
+  },
+  {
+   "fieldname": "direction",
+   "fieldtype": "Select",
+   "label": "Good Direction",
+   "options": "Higher Is Better\nLower Is Better",
+   "default": "Higher Is Better"
+  },
+  {
+   "fieldname": "sb_calc",
+   "fieldtype": "Section Break",
+   "label": "Calculation"
+  },
+  {
+   "fieldname": "source",
+   "fieldtype": "Select",
+   "label": "Source",
+   "options": "Method\nSQL",
+   "default": "Method",
+   "reqd": 1
+  },
+  {
+   "fieldname": "method_path",
+   "fieldtype": "Data",
+   "label": "Method Path",
+   "depends_on": "eval:doc.source=='Method'",
+   "description": "Dotted path resolved against the ags_edusmart KPI registry."
+  },
+  {
+   "fieldname": "sql_query",
+   "fieldtype": "Code",
+   "label": "SQL Query",
+   "options": "SQL",
+   "depends_on": "eval:doc.source=='SQL'",
+   "description": "Read-only SELECT. Placeholders: %(company)s, %(campus)s, %(from_date)s, %(to_date)s."
+  },
+  {
+   "fieldname": "cb_calc",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "refresh_interval_minutes",
+   "fieldtype": "Int",
+   "label": "Refresh Every (minutes)",
+   "default": "60",
+   "description": "The scheduler recomputes at most this often; dashboards read the snapshot."
+  },
+  {
+   "fieldname": "target_value",
+   "fieldtype": "Float",
+   "label": "Target"
+  },
+  {
+   "fieldname": "warning_threshold",
+   "fieldtype": "Float",
+   "label": "Warning Threshold"
+  },
+  {
+   "fieldname": "sb_drill",
+   "fieldtype": "Section Break",
+   "label": "Drilldown"
+  },
+  {
+   "fieldname": "drilldown_company",
+   "fieldtype": "Check",
+   "label": "By Company",
+   "default": "1"
+  },
+  {
+   "fieldname": "drilldown_campus",
+   "fieldtype": "Check",
+   "label": "By Campus",
+   "default": "1"
+  },
+  {
+   "fieldname": "drilldown_division",
+   "fieldtype": "Check",
+   "label": "By School Division",
+   "default": "0"
+  },
+  {
+   "fieldname": "cb_drill",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "drilldown_program",
+   "fieldtype": "Check",
+   "label": "By Grade",
+   "default": "0"
+  },
+  {
+   "fieldname": "drilldown_department",
+   "fieldtype": "Check",
+   "label": "By Department",
+   "default": "0"
+  },
+  {
+   "fieldname": "drilldown_academic_year",
+   "fieldtype": "Check",
+   "label": "By Academic Year",
+   "default": "1"
+  },
+  {
+   "fieldname": "sb_roles",
+   "fieldtype": "Section Break",
+   "label": "Visibility"
+  },
+  {
+   "fieldname": "roles",
+   "fieldtype": "Table",
+   "label": "Visible To Roles",
+   "options": "AGS KPI Role",
+   "description": "Empty means every role that can read the dashboard."
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-06 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "AGS Dashboards",
+ "name": "AGS KPI Definition",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "permlevel": 0,
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "share": 1,
+   "print": 1,
+   "email": 1
+  },
+  {
+   "role": "AGS Finance Manager",
+   "permlevel": 0,
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 0,
+   "report": 1,
+   "export": 1,
+   "share": 1,
+   "print": 1,
+   "email": 1
+  },
+  {
+   "role": "AGS Group Executive",
+   "permlevel": 0,
+   "read": 1,
+   "write": 0,
+   "create": 0,
+   "delete": 0,
+   "report": 1,
+   "export": 1,
+   "share": 1,
+   "print": 1,
+   "email": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "autoname": "field:code",
+ "track_changes": 1,
+ "title_field": "kpi_name",
+ "show_title_field_in_link": 1,
+ "search_fields": "category,code"
+}

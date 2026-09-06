@@ -1,0 +1,321 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-09-06 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "sb_identity",
+  "title",
+  "discount_type",
+  "is_active",
+  "cb_identity",
+  "priority",
+  "stackable",
+  "requires_approval",
+  "sb_calc",
+  "calculation",
+  "value",
+  "cb_calc",
+  "max_amount",
+  "sb_eligibility",
+  "apply_to_all_components",
+  "components",
+  "sb_conditions",
+  "company",
+  "campus",
+  "academic_year",
+  "cb_conditions",
+  "program",
+  "student_category",
+  "division_type",
+  "sb_sibling",
+  "sibling_index_from",
+  "cb_sibling",
+  "sibling_index_to",
+  "sb_validity",
+  "valid_from",
+  "cb_validity",
+  "valid_to",
+  "pay_before_date",
+  "sb_desc",
+  "description"
+ ],
+ "fields": [
+  {
+   "fieldname": "sb_identity",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "discount_type",
+   "fieldtype": "Select",
+   "label": "Discount Type",
+   "options": "Sibling Discount\nStaff Child Discount\nEarly Payment Discount\nScholarship\nCorporate Agreement\nAcademic Discount\nPromotional Discount\nPrincipal Exception\nFinancial Aid",
+   "reqd": 1,
+   "in_list_view": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "is_active",
+   "fieldtype": "Check",
+   "label": "Active",
+   "default": "1",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "cb_identity",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "priority",
+   "fieldtype": "Int",
+   "label": "Priority",
+   "default": "10",
+   "description": "Lower runs first. Order matters once discounts stack."
+  },
+  {
+   "fieldname": "stackable",
+   "fieldtype": "Check",
+   "label": "Stackable With Other Discounts",
+   "default": "1",
+   "description": "If unticked, this rule wins alone and suppresses the rest."
+  },
+  {
+   "fieldname": "requires_approval",
+   "fieldtype": "Check",
+   "label": "Always Requires Approval",
+   "default": "0"
+  },
+  {
+   "fieldname": "sb_calc",
+   "fieldtype": "Section Break",
+   "label": "Calculation"
+  },
+  {
+   "fieldname": "calculation",
+   "fieldtype": "Select",
+   "label": "Calculation",
+   "options": "Percent\nFixed Amount",
+   "default": "Percent",
+   "reqd": 1
+  },
+  {
+   "fieldname": "value",
+   "fieldtype": "Float",
+   "label": "Value",
+   "reqd": 1,
+   "in_list_view": 1,
+   "description": "Percent of the eligible base, or a flat amount."
+  },
+  {
+   "fieldname": "cb_calc",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "max_amount",
+   "fieldtype": "Currency",
+   "label": "Maximum Amount",
+   "description": "Caps the computed discount. Zero means uncapped."
+  },
+  {
+   "fieldname": "sb_eligibility",
+   "fieldtype": "Section Break",
+   "label": "Component Eligibility"
+  },
+  {
+   "fieldname": "apply_to_all_components",
+   "fieldtype": "Check",
+   "label": "Apply To All Fee Components",
+   "default": "0",
+   "description": "Otherwise only the categories listed below are discounted (SKILL sec. 17.6)."
+  },
+  {
+   "fieldname": "components",
+   "fieldtype": "Table",
+   "label": "Eligible Fee Categories",
+   "options": "AGS Discount Rule Component",
+   "depends_on": "eval:!doc.apply_to_all_components"
+  },
+  {
+   "fieldname": "sb_conditions",
+   "fieldtype": "Section Break",
+   "label": "Conditions"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company"
+  },
+  {
+   "fieldname": "campus",
+   "fieldtype": "Link",
+   "label": "Campus",
+   "options": "AGS Campus"
+  },
+  {
+   "fieldname": "academic_year",
+   "fieldtype": "Link",
+   "label": "Academic Year",
+   "options": "Academic Year"
+  },
+  {
+   "fieldname": "cb_conditions",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "program",
+   "fieldtype": "Link",
+   "label": "Grade",
+   "options": "Program"
+  },
+  {
+   "fieldname": "student_category",
+   "fieldtype": "Link",
+   "label": "Student Category",
+   "options": "Student Category"
+  },
+  {
+   "fieldname": "division_type",
+   "fieldtype": "Select",
+   "label": "Division Type",
+   "options": "\nKindergarten\nPrimary\nMiddle\nSecondary\nSenior"
+  },
+  {
+   "fieldname": "sb_sibling",
+   "fieldtype": "Section Break",
+   "label": "Sibling Tier",
+   "depends_on": "eval:doc.discount_type=='Sibling Discount'"
+  },
+  {
+   "fieldname": "sibling_index_from",
+   "fieldtype": "Int",
+   "label": "Applies From Child #",
+   "default": "2",
+   "description": "2 = second child. Matches the tier table in SKILL sec. 17.6."
+  },
+  {
+   "fieldname": "cb_sibling",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "sibling_index_to",
+   "fieldtype": "Int",
+   "label": "Applies To Child #",
+   "default": "0",
+   "description": "Zero means no upper bound."
+  },
+  {
+   "fieldname": "sb_validity",
+   "fieldtype": "Section Break",
+   "label": "Validity"
+  },
+  {
+   "fieldname": "valid_from",
+   "fieldtype": "Date",
+   "label": "Valid From"
+  },
+  {
+   "fieldname": "cb_validity",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "valid_to",
+   "fieldtype": "Date",
+   "label": "Valid To"
+  },
+  {
+   "fieldname": "pay_before_date",
+   "fieldtype": "Date",
+   "label": "Pay Before",
+   "depends_on": "eval:doc.discount_type=='Early Payment Discount'",
+   "description": "Early payment discount only holds if settled by this date."
+  },
+  {
+   "fieldname": "sb_desc",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-06 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "AGS Fees",
+ "name": "AGS Discount Rule",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "permlevel": 0,
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "share": 1,
+   "print": 1,
+   "email": 1
+  },
+  {
+   "role": "AGS Finance Manager",
+   "permlevel": 0,
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "share": 1,
+   "print": 1,
+   "email": 1
+  },
+  {
+   "role": "AGS Accountant",
+   "permlevel": 0,
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 0,
+   "report": 1,
+   "export": 1,
+   "share": 1,
+   "print": 1,
+   "email": 1
+  },
+  {
+   "role": "AGS Group Executive",
+   "permlevel": 0,
+   "read": 1,
+   "write": 0,
+   "create": 0,
+   "delete": 0,
+   "report": 1,
+   "export": 1,
+   "share": 1,
+   "print": 1,
+   "email": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "autoname": "field:title",
+ "track_changes": 1,
+ "title_field": "title",
+ "show_title_field_in_link": 1,
+ "search_fields": "discount_type,campus,academic_year"
+}

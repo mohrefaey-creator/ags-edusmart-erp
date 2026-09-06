@@ -1,0 +1,86 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-09-06 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "fees_category",
+  "item",
+  "description",
+  "gross_amount",
+  "discount_amount",
+  "net_amount",
+  "is_discountable",
+  "income_account"
+ ],
+ "fields": [
+  {
+   "fieldname": "fees_category",
+   "fieldtype": "Link",
+   "label": "Fee Category",
+   "options": "Fee Category",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "item",
+   "fieldtype": "Link",
+   "label": "Item",
+   "options": "Item",
+   "description": "Maps the fee to its revenue account (SKILL sec. 17.1)."
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description"
+  },
+  {
+   "fieldname": "gross_amount",
+   "fieldtype": "Currency",
+   "label": "Gross",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "discount_amount",
+   "fieldtype": "Currency",
+   "label": "Discount",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "net_amount",
+   "fieldtype": "Currency",
+   "label": "Net",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "is_discountable",
+   "fieldtype": "Check",
+   "label": "Discountable",
+   "default": "1"
+  },
+  {
+   "fieldname": "income_account",
+   "fieldtype": "Link",
+   "label": "Income Account",
+   "options": "Account"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-06 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "AGS Fees",
+ "name": "AGS Fee Plan Component",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "istable": 1,
+ "track_changes": 1
+}
