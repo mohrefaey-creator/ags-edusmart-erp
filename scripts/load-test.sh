@@ -99,12 +99,22 @@ if [ "${MODE}" = "calibrate" ] || [ "${MODE}" = "both" ]; then
 fi
 
 if [ "${MODE}" = "school-day" ] || [ "${MODE}" = "both" ]; then
-  say "School-day profile"
-  echo "   NOTE: this profile is sized for the 6-node topology in"
-  echo "   docs/capacity-model.md. Against ${WORKERS} workers on one box it is"
-  echo "   expected to breach the SLOs — the useful output is where it breaks."
+  # The profile is written for the deployed topology: 6 nodes x 17 workers =
+  # 102. Run unscaled against ${WORKERS} workers it breaches every threshold no
+  # matter how healthy the build is, and a test that can only fail proves
+  # nothing. Scaling every cohort by the worker ratio keeps the shape of the day
+  # and makes the pass/fail meaningful for this box.
+  MODEL_WORKERS=${MODEL_WORKERS:-102}
+  SCALE=${SCALE:-$(( (MODEL_WORKERS + WORKERS - 1) / WORKERS ))}
+
+  say "School-day profile (scaled 1/${SCALE})"
+  echo "   ${WORKERS} workers here vs ${MODEL_WORKERS} in docs/capacity-model.md, so every"
+  echo "   cohort is divided by ${SCALE}. A pass means this build sustains its"
+  echo "   proportional share of the design load. It is NOT a 2,500-user result;"
+  echo "   only an unscaled run against the full topology is that."
   k6 run \
     -e "BASE_URL=http://localhost:${PORT}" \
+    -e "SCALE=${SCALE}" \
     -e "PARENT_USER=Administrator" -e "PARENT_PASSWORD=${ADMIN_PASSWORD}" \
     -e "TEACHER_USER=Administrator" -e "TEACHER_PASSWORD=${ADMIN_PASSWORD}" \
     -e "STAFF_USER=Administrator" -e "STAFF_PASSWORD=${ADMIN_PASSWORD}" \

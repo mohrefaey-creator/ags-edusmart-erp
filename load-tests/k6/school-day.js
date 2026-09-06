@@ -25,6 +25,20 @@ import { SharedArray } from 'k6/data';
 const BASE = __ENV.BASE_URL || 'http://localhost:8000';
 const COMPRESSION = Number(__ENV.COMPRESSION || 60); // simulated minutes per real second
 
+// Divide every cohort by this. Default 1 — the full day against the deployed
+// topology, which is the only run whose pass means what the SLOs say.
+//
+// It exists because the alternative is worse. The cohorts below are sized for
+// the 6 nodes x 17 workers in docs/capacity-model.md; pointed at a 4-worker
+// developer bench they breach every threshold no matter how healthy the code
+// is, and a test that can only fail teaches nothing. Set SCALE to the worker
+// ratio (102 model workers / your workers) and the profile keeps the *shape* of
+// the day — same ramps, same mix, same ordering — at a load the box can serve.
+// A pass then means "this build sustains its share of the design load", which
+// is a real claim; it is not, and must not be reported as, a 2,500-user result.
+const SCALE = Math.max(1, Number(__ENV.SCALE || 1));
+const cohort = (n) => Math.max(1, Math.round(n / SCALE));
+
 // Custom metrics, split by journey. A blended p95 hides the fact that the
 // attendance submit is the slow one.
 const portalLatency = new Trend('ags_portal_latency', true);
@@ -57,10 +71,10 @@ export const options = {
       exec: 'teacherJourney',
       startTime: '0s',
       stages: [
-        { duration: `${Math.round(30 * 60 / COMPRESSION)}s`, target: 40 },
-        { duration: `${Math.round(10 * 60 / COMPRESSION)}s`, target: 280 },
-        { duration: `${Math.round(20 * 60 / COMPRESSION)}s`, target: 280 },
-        { duration: `${Math.round(60 * 60 / COMPRESSION)}s`, target: 60 },
+        { duration: `${Math.round(30 * 60 / COMPRESSION)}s`, target: cohort(40) },
+        { duration: `${Math.round(10 * 60 / COMPRESSION)}s`, target: cohort(280) },
+        { duration: `${Math.round(20 * 60 / COMPRESSION)}s`, target: cohort(280) },
+        { duration: `${Math.round(60 * 60 / COMPRESSION)}s`, target: cohort(60) },
       ],
       gracefulRampDown: '30s',
     },
@@ -71,9 +85,9 @@ export const options = {
       exec: 'staffJourney',
       startTime: '0s',
       stages: [
-        { duration: `${Math.round(60 * 60 / COMPRESSION)}s`, target: 90 },
-        { duration: `${Math.round(360 * 60 / COMPRESSION)}s`, target: 90 },
-        { duration: `${Math.round(60 * 60 / COMPRESSION)}s`, target: 10 },
+        { duration: `${Math.round(60 * 60 / COMPRESSION)}s`, target: cohort(90) },
+        { duration: `${Math.round(360 * 60 / COMPRESSION)}s`, target: cohort(90) },
+        { duration: `${Math.round(60 * 60 / COMPRESSION)}s`, target: cohort(10) },
       ],
     },
 
@@ -85,15 +99,15 @@ export const options = {
       executor: 'ramping-arrival-rate',
       exec: 'parentJourney',
       startTime: `${Math.round(120 * 60 / COMPRESSION)}s`,
-      startRate: 5,
+      startRate: cohort(5),
       timeUnit: '1s',
-      preAllocatedVUs: 400,
-      maxVUs: 2000,
+      preAllocatedVUs: cohort(400),
+      maxVUs: cohort(2000),
       stages: [
-        { duration: `${Math.round(120 * 60 / COMPRESSION)}s`, target: 30 },
-        { duration: `${Math.round(60 * 60 / COMPRESSION)}s`, target: 90 },  // month start
-        { duration: `${Math.round(120 * 60 / COMPRESSION)}s`, target: 40 },
-        { duration: `${Math.round(60 * 60 / COMPRESSION)}s`, target: 5 },
+        { duration: `${Math.round(120 * 60 / COMPRESSION)}s`, target: cohort(30) },
+        { duration: `${Math.round(60 * 60 / COMPRESSION)}s`, target: cohort(90) },  // month start
+        { duration: `${Math.round(120 * 60 / COMPRESSION)}s`, target: cohort(40) },
+        { duration: `${Math.round(60 * 60 / COMPRESSION)}s`, target: cohort(5) },
       ],
     },
 
@@ -103,7 +117,7 @@ export const options = {
     dashboards: {
       executor: 'constant-vus',
       exec: 'dashboardJourney',
-      vus: 30,
+      vus: cohort(30),
       startTime: `${Math.round(60 * 60 / COMPRESSION)}s`,
       duration: `${Math.round(360 * 60 / COMPRESSION)}s`,
     },
