@@ -1,0 +1,32 @@
+running (3m15.7s), 0000/0800 VUs, 51027 complete and 0 interrupted iterations
+ramp   [ 100% ] 0000/0800 VUs  3m14.6s/3m15s  011.49 iters/s
+
+AGS EduSmart — single-node calibration
+======================================
+  gunicorn workers      4
+  measured over         the flat 60s hold at 400 req/s offered
+                        (ramp stages excluded — they are not throughput)
+
+  sustained throughput  400.0 req/s
+  per worker            100.00 req/s
+  p50 latency           5 ms
+  p95 latency           28 ms  (SLO 500 ms)
+  errors                0.00%
+
+  Model check (docs/capacity-model.md §3)
+    assumed  9.00 req/s per worker
+    measured 100.00 req/s per worker
+    verdict  model is CONSERVATIVE — headroom exists
+
+  Implied nodes for the 625 req/s design peak at 70% utilisation:
+    1 nodes of 17 workers
+
+  NOTE: the offered rate was capped at 400 req/s and p95 stayed under
+  the SLO, so this is a lower bound on the node's capacity, not its knee.
+  Raise -e PEAK_RPS until p95 crosses 500 ms to find the actual knee.
+
+running (3m16.1s), 0000/0800 VUs, 51029 complete and 0 interrupted iterations
+ramp ✓ [ 100% ] 0000/0800 VUs  3m15s  003.65 iters/s
+gunicorn stopped
+
+[exited with code 0]

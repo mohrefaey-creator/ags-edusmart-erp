@@ -12,6 +12,15 @@ BASE=${1:-http://localhost:8000}
 USER_EMAIL=${2:-mohamed.ahmed@example.com}
 PASSWORD=${3:-demo-not-a-real-credential}
 COOKIES=$(mktemp)
+# If mktemp fails, or a caller invokes this through a layer that strips the
+# quoting, `-c "${COOKIES}"` collapses to a bare `-c` and curl takes the NEXT
+# argument as the jar filename — which is how files literally named `-X` and
+# `-m`, containing a live session cookie, once got committed to this repo.
+if [ -z "${COOKIES}" ] || [ ! -f "${COOKIES}" ]; then
+  echo "could not create a cookie jar; refusing to run" >&2
+  exit 1
+fi
+trap 'rm -f "${COOKIES}"' EXIT
 FAILED=0
 
 pass() { printf '  \033[32mPASS\033[0m  %s\n' "$1"; }

@@ -24,15 +24,32 @@ PORT=${PORT:-8010}
 WORKERS=${WORKERS:-4}
 PEAK_RPS=${PEAK_RPS:-60}
 ADMIN_PASSWORD=${ADMIN_PASSWORD:-dev-admin-not-real}
+# Password for the three role-scoped load-test users. Local, disposable, and
+# only ever valid on a site that already allows seeding (developer/allow_tests).
+LOADTEST_PASSWORD=${LOADTEST_PASSWORD:-loadtest-not-real}
+MODEL_WORKERS=${MODEL_WORKERS:-102}
+# Empty means "derive from the worker ratio below"; SCALE=1 means unscaled.
+SCALE=${SCALE:-}
+# Simulated minutes per real second. 60 runs a full day in ~8 minutes; raise it
+# for a quick diagnostic run that keeps the shape but not the duration.
+COMPRESSION=${COMPRESSION:-60}
+# Distinct accounts per cohort. See the note by the ensure_users call below.
+USER_POOL=${USER_POOL:-30}
 MODE=${1:-both}
 
 if [ "$(id -u)" -eq 0 ] && id -u "${BENCH_USER}" >/dev/null 2>&1; then
-  # ADMIN_PASSWORD must be forwarded too: without it the re-exec falls back to
-  # the default and every k6 login fails, which reads as "the app is broken"
-  # rather than "the harness dropped a variable".
+  # Every tuneable has to cross this boundary explicitly.
+  #
+  # `su -` starts a login shell with a clean environment, so anything not named
+  # here is silently replaced by its default on the other side. That has now
+  # cost two runs: ADMIN_PASSWORD went missing and every login failed, then
+  # SCALE went missing and a run invoked as SCALE=1 quietly executed at 1/26 —
+  # producing a real-looking result for a test nobody asked for.
   exec su - "${BENCH_USER}" -c \
     "BENCH_DIR='${BENCH_DIR}' SITE='${SITE}' PORT='${PORT}' WORKERS='${WORKERS}' \
      PEAK_RPS='${PEAK_RPS}' ADMIN_PASSWORD='${ADMIN_PASSWORD}' \
+     LOADTEST_PASSWORD='${LOADTEST_PASSWORD}' MODEL_WORKERS='${MODEL_WORKERS}' \
+     SCALE='${SCALE}' COMPRESSION='${COMPRESSION}' USER_POOL='${USER_POOL}' \
      bash '${BASH_SOURCE[0]}' '${MODE}'"
 fi
 
@@ -50,6 +67,22 @@ cleanup() {
   fi
 }
 trap cleanup EXIT
+
+say "Ensuring pooled, role-scoped load-test users (${USER_POOL} per cohort)"
+# A pool, not Administrator and not one account per cohort.
+#
+# Administrator bypasses permission checks, so it would skip the row-scoping
+# subqueries the capacity model's design rests on. And concurrent logins for one
+# account collide inside Frappe's own session bookkeeping and return 500 — about
+# half of 30 simultaneous logins did, which turned a healthy run into a 94%
+# failure rate that read as an application fault. Production has one login per
+# person; a pool reproduces that rather than papering over it.
+(
+  cd "${BENCH_DIR}" || exit 1
+  export PATH="${HOME}/.local/bin:${PATH}"
+  bench --site "${SITE}" execute ags_edusmart.setup.loadtest_data.ensure_users \
+    --kwargs "{'password': '${LOADTEST_PASSWORD}', 'per_cohort': ${USER_POOL}}"
+) || { echo "could not create load-test users" >&2; exit 1; }
 
 say "Starting gunicorn (${WORKERS} workers) on :${PORT}"
 cd "${BENCH_DIR}/sites" || { echo "no bench at ${BENCH_DIR}" >&2; exit 1; }
@@ -118,21 +151,30 @@ if [ "${MODE}" = "school-day" ] || [ "${MODE}" = "both" ]; then
   # matter how healthy the build is, and a test that can only fail proves
   # nothing. Scaling every cohort by the worker ratio keeps the shape of the day
   # and makes the pass/fail meaningful for this box.
-  MODEL_WORKERS=${MODEL_WORKERS:-102}
-  SCALE=${SCALE:-$(( (MODEL_WORKERS + WORKERS - 1) / WORKERS ))}
+  # Empty (not unset) means the caller did not choose, so derive it.
+  [ -n "${SCALE}" ] || SCALE=$(( (MODEL_WORKERS + WORKERS - 1) / WORKERS ))
 
-  say "School-day profile (scaled 1/${SCALE})"
-  echo "   ${WORKERS} workers here vs ${MODEL_WORKERS} in docs/capacity-model.md, so every"
-  echo "   cohort is divided by ${SCALE}. A pass means this build sustains its"
-  echo "   proportional share of the design load. It is NOT a 2,500-user result;"
-  echo "   only an unscaled run against the full topology is that."
+  if [ "${SCALE}" -eq 1 ]; then
+    say "School-day profile (UNSCALED — full 2,500-user shape)"
+    echo "   Every cohort at full size against ${WORKERS} workers. This is the"
+    echo "   real shape of the day; whether it passes here is a statement about"
+    echo "   this box, not about the ${MODEL_WORKERS}-worker topology."
+  else
+    say "School-day profile (scaled 1/${SCALE})"
+    echo "   ${WORKERS} workers here vs ${MODEL_WORKERS} in docs/capacity-model.md, so every"
+    echo "   cohort is divided by ${SCALE}. A pass means this build sustains its"
+    echo "   proportional share of the design load. It is NOT a 2,500-user result;"
+    echo "   only an unscaled run against the full topology is that."
+  fi
   k6 run \
     -e "BASE_URL=http://${SITE}:${PORT}" \
     -e "SITE_HOST=${SITE}" \
     -e "SCALE=${SCALE}" \
-    -e "PARENT_USER=Administrator" -e "PARENT_PASSWORD=${ADMIN_PASSWORD}" \
-    -e "TEACHER_USER=Administrator" -e "TEACHER_PASSWORD=${ADMIN_PASSWORD}" \
-    -e "STAFF_USER=Administrator" -e "STAFF_PASSWORD=${ADMIN_PASSWORD}" \
+    -e "COMPRESSION=${COMPRESSION}" \
+    -e "USER_POOL=${USER_POOL}" \
+    -e "PARENT_PASSWORD=${LOADTEST_PASSWORD}" \
+    -e "TEACHER_PASSWORD=${LOADTEST_PASSWORD}" \
+    -e "STAFF_PASSWORD=${LOADTEST_PASSWORD}" \
     --no-usage-report \
     school-day.js
 fi

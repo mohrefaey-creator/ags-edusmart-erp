@@ -18,6 +18,7 @@
 // day runs in about nine minutes. Set -e COMPRESSION=1 for real time.
 
 import http from 'k6/http';
+import exec from 'k6/execution';
 import { check, group, sleep } from 'k6';
 import { Rate, Trend, Counter } from 'k6/metrics';
 import { SharedArray } from 'k6/data';
@@ -57,16 +58,38 @@ const loginFailures = new Rate('ags_login_failures');
 const businessErrors = new Counter('ags_business_errors');
 
 // Credentials come from the environment; nothing is embedded here.
+//
+// A pool per cohort rather than one shared account. Real cohorts are hundreds
+// of distinct people, so one account per cohort is wrong three ways: it skips
+// the per-user scope rows, it is unrealistically kind to the session cache, and
+// — the one that actually broke a run — concurrent logins for the same account
+// collide inside Frappe's own session bookkeeping and return 500. See
+// ags_edusmart/setup/loadtest_data.py for the mechanism.
+const POOL = Math.max(1, Number(__ENV.USER_POOL || 30));
+
 const users = new SharedArray('users', () => {
-  const parentPw = __ENV.PARENT_PASSWORD || '';
-  const teacherPw = __ENV.TEACHER_PASSWORD || '';
-  const staffPw = __ENV.STAFF_PASSWORD || teacherPw;
-  return [
-    { role: 'parent', usr: __ENV.PARENT_USER || 'parent@ags.edu.sa', pwd: parentPw },
-    { role: 'teacher', usr: __ENV.TEACHER_USER || 'teacher@ags.edu.sa', pwd: teacherPw },
-    { role: 'staff', usr: __ENV.STAFF_USER || 'finance@ags.edu.sa', pwd: staffPw },
-  ];
+  const pw = {
+    parent: __ENV.PARENT_PASSWORD || '',
+    teacher: __ENV.TEACHER_PASSWORD || '',
+    staff: __ENV.STAFF_PASSWORD || __ENV.TEACHER_PASSWORD || '',
+  };
+  const rows = [];
+  for (const role of ['parent', 'teacher', 'staff']) {
+    for (let i = 1; i <= POOL; i += 1) {
+      const n = String(i).padStart(3, '0');
+      rows.push({ role, usr: `lt.${role}${n}@loadtest.invalid`, pwd: pw[role] });
+    }
+  }
+  return rows;
 });
+
+// Pick this VU's account. idInTest is unique and stable for the life of the VU,
+// so a VU keeps one identity across all its iterations — which is what a person
+// does, and what makes the per-VU session below meaningful.
+function userFor(role) {
+  const pool = users.filter((u) => u.role === role);
+  return pool[exec.vu.idInTest % pool.length];
+}
 
 // Cohort sizes from docs/capacity-model.md sec. 1, scaled to VUs.
 // 2,500 concurrent sessions total at the peak; k6 VUs are sessions, not users.
@@ -185,7 +208,7 @@ function apiGet(path, params, trend, name) {
 
 // --------------------------------------------------------------- journeys
 export function teacherJourney() {
-  const user = users.find((u) => u.role === 'teacher');
+  const user = userFor('teacher');
   if (!login(user)) return;
 
   group('attendance', () => {
@@ -207,7 +230,7 @@ export function teacherJourney() {
 }
 
 export function staffJourney() {
-  const user = users.find((u) => u.role === 'staff');
+  const user = userFor('staff');
   if (!login(user)) return;
 
   group('back office', () => {
@@ -225,7 +248,7 @@ export function staffJourney() {
 }
 
 export function parentJourney() {
-  const user = users.find((u) => u.role === 'parent');
+  const user = userFor('parent');
   if (!login(user)) return;
 
   group('parent portal', () => {
@@ -242,7 +265,7 @@ export function parentJourney() {
 }
 
 export function dashboardJourney() {
-  const user = users.find((u) => u.role === 'staff');
+  const user = userFor('staff');
   if (!login(user)) return;
 
   group('executive dashboard', () => {
