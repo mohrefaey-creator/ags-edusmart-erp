@@ -27,9 +27,13 @@ ADMIN_PASSWORD=${ADMIN_PASSWORD:-dev-admin-not-real}
 MODE=${1:-both}
 
 if [ "$(id -u)" -eq 0 ] && id -u "${BENCH_USER}" >/dev/null 2>&1; then
+  # ADMIN_PASSWORD must be forwarded too: without it the re-exec falls back to
+  # the default and every k6 login fails, which reads as "the app is broken"
+  # rather than "the harness dropped a variable".
   exec su - "${BENCH_USER}" -c \
     "BENCH_DIR='${BENCH_DIR}' SITE='${SITE}' PORT='${PORT}' WORKERS='${WORKERS}' \
-     PEAK_RPS='${PEAK_RPS}' bash '${BASH_SOURCE[0]}' '${MODE}'"
+     PEAK_RPS='${PEAK_RPS}' ADMIN_PASSWORD='${ADMIN_PASSWORD}' \
+     bash '${BASH_SOURCE[0]}' '${MODE}'"
 fi
 
 say() { printf '\n\033[1m== %s\033[0m\n' "$1"; }
