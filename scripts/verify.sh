@@ -17,8 +17,21 @@ set -uo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP_REPO="${REPO_ROOT}/apps/ags_edusmart"
 BENCH_DIR=${BENCH_DIR:-/home/frappe/frappe-bench}
+BENCH_USER=${BENCH_USER:-frappe}
 SITE=${SITE:-ags.localhost}
 BASE_URL=${BASE_URL:-http://localhost:8000}
+
+# Frappe refuses to run as root, so `sudo bash scripts/verify.sh` would report
+# three false failures. Drop to the bench user rather than making the caller
+# remember which scripts need sudo and which reject it (bootstrap.sh needs it;
+# this does not).
+if [ "$(id -u)" -eq 0 ] && id -u "${BENCH_USER}" >/dev/null 2>&1; then
+	printf '   re-running as %s (Frappe cannot run as root)\n' "${BENCH_USER}"
+	exec su - "${BENCH_USER}" -c "bash '${BASH_SOURCE[0]}' $*"
+fi
+
+SMOKE_LOG="$(mktemp -t ags-smoke.XXXXXX)"
+trap 'rm -f "${SMOKE_LOG}"' EXIT
 
 PASS=0
 FAIL=0
@@ -169,12 +182,12 @@ fi
 # ---------------------------------------------------------------- 6. portal
 step "Portal end to end"
 if curl -sf -m 10 "${BASE_URL}/api/method/ping" >/dev/null 2>&1; then
-  if bash "${REPO_ROOT}/scripts/smoke-portal.sh" "${BASE_URL}" >/tmp/ags-smoke.log 2>&1; then
-    checks=$(grep -c 'PASS' /tmp/ags-smoke.log)
+  if bash "${REPO_ROOT}/scripts/smoke-portal.sh" "${BASE_URL}" >${SMOKE_LOG} 2>&1; then
+    checks=$(grep -c 'PASS' ${SMOKE_LOG})
     ok "${checks} portal checks passed (incl. anonymous and foreign-student refusal)"
   else
     bad "portal smoke check failed"
-    grep -E 'FAIL' /tmp/ags-smoke.log | head -5
+    grep -E 'FAIL' ${SMOKE_LOG} | head -5
   fi
 else
   skip "nothing serving at ${BASE_URL} — run scripts/start-dev.sh"

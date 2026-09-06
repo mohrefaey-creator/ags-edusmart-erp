@@ -8,7 +8,15 @@ set -euo pipefail
 
 REPO_APP="/mnt/c/Users/malrefaey/Desktop/Apps/School ERP/apps/ags_edusmart"
 BENCH="${BENCH:-/home/frappe/frappe-bench}"
+BENCH_USER="${BENCH_USER:-frappe}"
 TARGET="${BENCH}/apps/ags_edusmart"
+
+# Never sync as root. Doing so leaves root-owned files in the bench, and the
+# next run as the bench user then fails with "failed to set times: Operation not
+# permitted" on every directory root happened to touch.
+if [ "$(id -u)" -eq 0 ] && id -u "${BENCH_USER}" >/dev/null 2>&1; then
+  exec su - "${BENCH_USER}" -c "bash '${BASH_SOURCE[0]}'"
+fi
 
 if [[ ! -d "${REPO_APP}" ]]; then
   echo "source app not found: ${REPO_APP}" >&2
