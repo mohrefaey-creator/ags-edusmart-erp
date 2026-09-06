@@ -124,6 +124,14 @@ class TestFeeLifecycle(IntegrationTestCase):
 
 	# --------------------------------------------------------------- money
 	def test_invoice_payment_and_statement(self):
+		# Deltas, not absolutes. The reference dataset commits a part-paid
+		# invoice for this same family (demo.run_finance_journey), so a test that
+		# assumed an empty ledger would pass only on a pristine site.
+		payer_customer = frappe.db.get_value(
+			"AGS Payer Account", self.payer, "customer"
+		)
+		opening = compute_summary(payer_customer)
+
 		plan = self._make_plan(self.sara, "Grade 5")
 		plan.submit()
 
@@ -132,9 +140,6 @@ class TestFeeLifecycle(IntegrationTestCase):
 
 		# Billed to the payer's customer, not the student's - that is what puts
 		# three siblings on one statement.
-		payer_customer = frappe.db.get_value(
-			"AGS Payer Account", self.payer, "customer"
-		)
 		self.assertEqual(invoice.customer, payer_customer)
 		self.assertEqual(invoice.ags_student, self.sara)
 		self.assertEqual(flt(invoice.grand_total), 7500.0)
@@ -145,20 +150,29 @@ class TestFeeLifecycle(IntegrationTestCase):
 		accounts = {row.income_account for row in invoice.items}
 		self.assertGreater(len(accounts), 1)
 
-		summary = compute_summary(payer_customer)
-		self.assertEqual(flt(summary["outstanding"]), 7500.0)
+		after_invoice = compute_summary(payer_customer)
+		self.assertEqual(
+			flt(after_invoice["outstanding"] - opening["outstanding"], 2), 7500.0
+		)
+		self.assertEqual(
+			flt(after_invoice["total_billed"] - opening["total_billed"], 2), 7500.0
+		)
 
 		self._pay(invoice, 3000.0)
 
-		summary = compute_summary(payer_customer)
-		self.assertEqual(flt(summary["total_paid"]), 3000.0)
-		self.assertEqual(flt(summary["outstanding"]), 4500.0)
+		after_payment = compute_summary(payer_customer)
+		self.assertEqual(
+			flt(after_payment["total_paid"] - opening["total_paid"], 2), 3000.0
+		)
+		self.assertEqual(
+			flt(after_payment["outstanding"] - opening["outstanding"], 2), 4500.0
+		)
 
 		refresh_payer_account(self.payer)
-		self.assertEqual(
-			flt(frappe.db.get_value("AGS Payer Account", self.payer, "outstanding")),
-			4500.0,
+		stored = flt(
+			frappe.db.get_value("AGS Payer Account", self.payer, "outstanding")
 		)
+		self.assertEqual(flt(stored - opening["outstanding"], 2), 4500.0)
 
 		plan.reload()
 		plan.refresh_totals()

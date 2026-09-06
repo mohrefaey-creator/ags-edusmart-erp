@@ -617,3 +617,62 @@ def create_portal_users() -> list[str]:
 
 	frappe.db.commit()
 	return created
+
+
+def run_finance_journey() -> dict:
+	"""Take the reference family all the way to a part-paid invoice.
+
+	Gives the AI layer and the dashboards something real to report on: billed
+	revenue, a collected portion, and an outstanding balance that ages.
+	"""
+	from ags_edusmart.ags_fees.invoicing import create_invoice_for_installment
+	from ags_edusmart.ags_fees.payer import refresh_payer_account
+
+	journey = run_journey()
+	plan = frappe.get_doc("AGS Fee Plan", journey["fee_plan"])
+
+	if plan.docstatus == 0:
+		plan.submit()
+		plan.reload()
+
+	first = plan.installments[0]
+	if not first.sales_invoice:
+		create_invoice_for_installment(plan.name, first.installment_no)
+		plan.reload()
+		first = plan.installments[0]
+
+	invoice = frappe.get_doc("Sales Invoice", first.sales_invoice)
+
+	# A part payment, so collection percentage is neither 0 nor 100 - both of
+	# which make a dashboard look plausible while telling you nothing.
+	if flt(invoice.outstanding_amount) == flt(invoice.grand_total):
+		from erpnext.accounts.doctype.payment_entry.payment_entry import get_payment_entry
+
+		amount = flt(invoice.grand_total) * 0.4
+		payment = get_payment_entry("Sales Invoice", invoice.name)
+		payment.paid_amount = amount
+		payment.received_amount = amount
+		payment.reference_no = "DEMO-PAY-001"
+		payment.reference_date = nowdate()
+		payment.references = []
+		payment.append("references", {
+			"reference_doctype": "Sales Invoice",
+			"reference_name": invoice.name,
+			"total_amount": invoice.grand_total,
+			"outstanding_amount": invoice.outstanding_amount,
+			"allocated_amount": amount,
+		})
+		payment.flags.ignore_permissions = True
+		payment.insert()
+		payment.submit()
+
+	refresh_payer_account(plan.payer_account)
+	frappe.db.commit()
+
+	invoice.reload()
+	return {
+		"fee_plan": plan.name,
+		"invoice": invoice.name,
+		"billed": flt(invoice.grand_total, 2),
+		"outstanding": flt(invoice.outstanding_amount, 2),
+	}

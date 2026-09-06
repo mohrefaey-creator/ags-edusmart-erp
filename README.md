@@ -10,7 +10,7 @@ parent portal serves a real consolidated statement.
 
 ```
 School ERP/
-├── apps/ags_edusmart/     the AGS application (40 DocTypes, 12 modules)
+├── apps/ags_edusmart/     the AGS application (42 DocTypes, 12 modules)
 ├── infra/                 production topology for 2,500 concurrent users
 ├── load-tests/            k6 profile that replays a school day
 ├── docs/                  capacity model, ADRs, runbooks
@@ -38,6 +38,7 @@ what a Saudi multi-campus school group needs and the upstream apps do not have:
 | `ags_dashboards` | KPI definitions, snapshot engine, role-scoped reads |
 | `ags_notifications` | Durable outbox across In-App / Email / SMS / WhatsApp |
 | `ags_localization` | ZATCA hash chain, TLV QR, UBL generation, clearance archive |
+| `ags_ai` | 21 permission-scoped analyzers, bilingual routing, driver decomposition |
 
 ## The parts worth reading first
 
@@ -67,6 +68,18 @@ a commitment is not an accounting event (ADR 0002).
 thresholds. SAR 30,000 needs department head **and** finance **and** principal,
 matching §8.3 exactly. What it gates is the consequence, not the submission —
 see ADR 0006 for why that distinction matters to the audit trail.
+
+**The AI layer** (`ags_ai/`). 21 analyzers covering the questions in §28, and a
+language model that **never touches data** — it may only rephrase a finished
+result, is off by default, and the system works fully without one. Numbers come
+from the ledger; scope is resolved from the same permission machinery as the
+desk and printed with every answer; unmatched questions return what *can* be
+answered instead of guessing. ADR 0008 has the reasoning.
+
+```
+4,500.00 is outstanding across 1 payer account(s); 0.00 of that is already overdue.
+Basis: AGS Education Group · all campuses · 2026-2027 · 2025-09-07 → 2026-09-07
+```
 
 ## Running it
 
@@ -106,8 +119,9 @@ it cannot create a weak account in production by accident.
 ## Verifying it
 
 ```bash
-# 30 tests: fee arithmetic, installment reconciliation, ledger posting,
-# commitment accounting, approval ladders, ZATCA encoding, grade parsing
+# 56 tests: fee arithmetic, installment reconciliation, ledger posting,
+# commitment accounting, approval ladders, ZATCA encoding, AI scope&routing,
+# Arabic coverage and placeholder integrity
 wsl -d Ubuntu-26.04 -u frappe -- bash -lc \
   'cd ~/frappe-bench && bench --site ags.localhost run-tests --app ags_edusmart'
 
@@ -131,10 +145,25 @@ The capacity claim is falsifiable: `load-tests/k6/school-day.js` replays the
 shape of a real day — the 07:40 attendance rush, the mid-morning plateau, the
 month-start parent surge — and fails the run if the SLOs are breached.
 
+## Arabic
+
+The UI is fully bilingual: 961 strings at 100% coverage, generated from
+`tools/ar_*.py` rather than hand-edited, and enforced by tests that fail when a
+new DocType label has no entry.
+
+```bash
+python tools/build_translations.py --check
+```
+
+Identifier-shaped values (invoice numbers, class codes) are wrapped in a `.code`
+class that sets both `direction: ltr` and `unicode-bidi: isolate` — isolation
+alone is not enough, and without it `1-A` renders as `A-1` in an RTL page.
+Terminology decisions are in ADR 0009.
+
 ## Documentation
 
 - [`docs/capacity-model.md`](docs/capacity-model.md) — the sizing arithmetic
-- [`docs/adr/`](docs/adr) — why the design is what it is (7 decisions)
+- [`docs/adr/`](docs/adr) — why the design is what it is (9 decisions)
 - [`docs/runbooks/`](docs/runbooks) — 9 runbooks, one per alert
 - [`apps/ags_edusmart/README.md`](apps/ags_edusmart/README.md) — the app itself
 

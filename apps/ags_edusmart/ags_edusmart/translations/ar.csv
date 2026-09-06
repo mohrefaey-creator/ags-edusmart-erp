@@ -1,0 +1,961 @@
+" With {0}% growth applied, next year projects to {1}.", وبتطبيق نمو {0}٪، يُتوقع العام القادم {1}.
+1 = eldest enrolled. Drives sibling discount tiers.,١ = الأكبر سناً بين المسجلين. يحدد شرائح خصم الأشقاء.
+1-30 Days,١-٣٠ يوماً
+2 = second child. Matches the tier table in SKILL sec. 17.6.,٢ = الابن الثاني. مطابق لجدول الشرائح في SKILL sec. 17.6.
+31-60 Days,٣١-٦٠ يوماً
+61-90 Days,٦١-٩٠ يوماً
+91-120 Days,٩١-١٢٠ يوماً
+"A class average reflects intake, subject and cohort as well as teaching. Treat this as a variance to investigate, not a judgement.",متوسط الفصل يعكس القبول والمادة والدفعة إضافةً إلى التدريس. تعامل معه كانحراف يستدعي الدراسة، لا كحكم.
+"A physical campus, sitting between the legal entity and its school divisions.",حرم مدرسي فعلي، يقع بين الكيان القانوني والمراحل الدراسية التابعة له.
+A rejection reason is required.,سبب الرفض مطلوب.
+A transfer needs both a from and a to employee.,النقل يتطلب تحديد الموظف المرسل والمستلم معاً.
+AGS / Saudi Details,البيانات السعودية
+AGS AI Query Log,سجل استعلامات التحليل
+AGS AI Settings,إعدادات التحليل الذكي
+AGS Approval,اعتماد النظام
+AGS Approval Level,مستوى الاعتماد
+AGS Approval Log,سجل الاعتماد
+AGS Approval Matrix,مصفوفة الاعتماد
+AGS Approval Request,طلب اعتماد
+AGS Asset Handover,تسليم عهدة
+AGS Asset Handover Item,بند تسليم العهدة
+AGS Budget Commitment,ارتباط الميزانية
+AGS Campus,الحرم المدرسي
+AGS Campus Link,ربط الحرم المدرسي
+AGS Collection Action,إجراء التحصيل
+AGS Collection Case,ملف التحصيل
+AGS Department Issue,صرف مواد لقسم
+AGS Department Issue Item,بند صرف المواد
+AGS Department Issue {0} - {1},صرف مواد لقسم {0} - {1}
+AGS Discount Application,طلب خصم
+AGS Discount Rule,قاعدة الخصم
+AGS Discount Rule Component,بند قاعدة الخصم
+AGS Document Expiry,انتهاء صلاحية مستند
+AGS Fee Plan,خطة الرسوم
+AGS Fee Plan Component,بند خطة الرسوم
+AGS Fee Plan Discount,خصم خطة الرسوم
+AGS Fee Plan Installment,قسط خطة الرسوم
+AGS Fee Waiver,إعفاء من الرسوم
+AGS Justification,المبرر
+AGS KPI Definition,تعريف مؤشر الأداء
+AGS KPI Role,دور مؤشر الأداء
+AGS KPI Snapshot,لقطة مؤشر الأداء
+AGS Location & Custody,الموقع والعهدة
+AGS Notification Outbox,صندوق الإشعارات الصادرة
+AGS Notification Rule,قاعدة الإشعار
+AGS Payer Account,حساب الدافع
+AGS Payer Student,طالب مرتبط بالدافع
+AGS Quotation Comparison,مقارنة عروض الأسعار
+AGS Quotation Comparison Supplier,مورد في مقارنة العروض
+AGS Reminder Log,سجل التذكيرات
+AGS Reminder Rule,قاعدة التذكير
+AGS Scholarship,المنحة الدراسية
+AGS School Details,بيانات المدرسة
+AGS School Division,المرحلة الدراسية
+AGS School Fees,الرسوم الدراسية
+AGS School Item,بيانات الصنف المدرسي
+AGS Settings,إعدادات النظام
+AGS Three Way Match Exception,استثناء المطابقة الثلاثية
+AGS User Scope,نطاق صلاحية المستخدم
+AGS ZATCA Invoice Log,سجل الفوترة الإلكترونية
+AGS ZATCA Settings,إعدادات الفوترة الإلكترونية
+API Base URL,رابط الواجهة البرمجية
+API Key,مفتاح الواجهة البرمجية
+Abbreviation,الاختصار
+"About {0} is expected over the next {1} month(s): {2} from the {3} falling due at the observed {4}% collection rate, plus an estimated {5} recovered from the {6} already overdue.",يُتوقع تحصيل نحو {0} خلال {1} شهر: {2} من المستحق البالغ {3} بمعدل التحصيل الملاحظ {4}٪، إضافةً إلى {5} تقديرياً من المتأخرات البالغة {6}.
+Absence runs at {0}% overall and no department stands out against the others.,معدل الغياب {0}٪ إجمالاً ولا يوجد قسم يبرز عن غيره.
+Absence runs at {0}% overall. {1} department(s) are unusually high; {2} is the clearest at {3}% against a median of {4}%.,معدل الغياب {0}٪ إجمالاً. {1} قسم مرتفع بشكل غير معتاد؛ الأوضح هو {2} بنسبة {3}٪ مقابل وسيط {4}٪.
+Absenteeism by department,الغياب حسب القسم
+Academic,الأكاديمي
+Academic Discount,خصم أكاديمي
+Academic Range,النطاق الدراسي
+Academic Term,الفصل الدراسي
+Academic Year,العام الدراسي
+Access All Campuses,الوصول إلى جميع الأحرام
+Access Scope,نطاق الوصول
+Accessories,الملحقات
+Accounting,المحاسبة
+Acknowledge,إقرار الاستلام
+Acknowledged,تم الإقرار
+Acknowledged By,أقر بواسطة
+Acknowledged On,تاريخ الإقرار
+Acknowledged by {0}.,تم الإقرار بواسطة {0}.
+Acknowledgement,الإقرار
+Action,الإجراء
+Action If Committed Budget Exceeded,الإجراء عند تجاوز الميزانية المرتبطة
+Actions,الإجراءات
+Active,نشط
+Actual,الفعلي
+Add at least one asset.,أضف أصلاً واحداً على الأقل.
+Add at least one fee component.,أضف بند رسوم واحداً على الأقل.
+Add at least one item.,أضف صنفاً واحداً على الأقل.
+Additional Condition,شرط إضافي
+Address,العنوان
+Ageing Buckets,فئات التقادم
+Allergies,الحساسية
+Allocated,المخصص
+Also Notify Role,إشعار دور إضافي
+Always Requires Approval,يتطلب اعتماداً دائماً
+Amended From,معدّل من
+Amount,المبلغ
+Amount Field,حقل المبلغ
+Amounts,المبالغ
+Analysis,التحليل
+Annual,سنوي
+Annual Fees,الرسوم السنوية
+Applied,مطبّق
+Applied To Fee Plan,مطبّق على خطة الرسوم
+Applies From Child #,يطبق من الابن رقم
+Applies To Child #,يطبق حتى الابن رقم
+Apply To All Fee Components,تطبيق على جميع بنود الرسوم
+Approval,الاعتماد
+Approval Levels,مستويات الاعتماد
+Approval Pending,بانتظار الاعتماد
+Approval Rejected,تم رفض الاعتماد
+Approval Status,حالة الاعتماد
+Approval Trail,مسار الاعتماد
+Approved,معتمد
+Approved By,اعتمد بواسطة
+Approved On,تاريخ الاعتماد
+Approved requests and open orders consume budget before the invoice lands (SKILL sec. 7.1).,الطلبات المعتمدة وأوامر الشراء المفتوحة تستهلك الميزانية قبل ورود الفاتورة (SKILL sec. 7.1).
+Approver,المعتمد
+Approver Role,دور المعتمد
+Ask a question.,اطرح سؤالاً.
+Asked By,السائل
+Asset,الأصل
+Asset Movement,حركة الأصل
+Asset return overdue: {0},تأخر إرجاع العهدة: {0}
+Asset {0} is currently held by {1}. Record a return or a transfer instead.,الأصل {0} في عهدة {1} حالياً. سجّل إرجاعاً أو نقلاً بدلاً من ذلك.
+Asset {0} is listed twice.,الأصل {0} مُدرج مرتين.
+Assets,الأصول
+Assets Issued To Me,الأصول المسلّمة لي
+Assets Not Returned,لم تُرجع العهد
+Attempts,المحاولات
+Attendance is recorded for only {0} department(s) in this period - too few to identify an outlier.,الحضور مسجل لـ {0} قسم فقط في هذه الفترة - وهو عدد أقل من أن يحدد حالة شاذة.
+Audit Retention,مدة حفظ السجل
+Audited discount request with before/after values (SKILL sec. 17.7).,طلب خصم موثّق يحتفظ بالقيم قبل وبعد التعديل (SKILL sec. 17.7).
+Auto-Apply Matching Discount Rules,تطبيق قواعد الخصم المطابقة تلقائياً
+Available,المتاح
+Awaiting,بانتظار
+Awaiting Award,بانتظار الترسية
+Awaiting Role,بانتظار دور
+Award,الترسية
+Award Justification,مبرر الترسية
+Award justification is required when the award differs from the system recommendation ({0}).,مبرر الترسية مطلوب عند اختلافها عن توصية النظام ({0}).
+Awarded,تمت الترسية
+Awarded Supplier,المورد المرسى عليه
+Awarded supplier {0} is not among the compared suppliers.,المورد المرسى عليه {0} ليس ضمن الموردين المقارَنين.
+Balance,الرصيد
+"Based on current salary structure assignments. Does not include planned hires, promotions or end-of-service provisions.",بناءً على هياكل الرواتب المسندة حالياً. لا يشمل التعيينات المخططة أو الترقيات أو مخصصات نهاية الخدمة.
+Basis: {0},الأساس: {0}
+Behaviour,السلوك
+Billing {0} against an ordered value of {1}.,فوترة {0} مقابل قيمة مطلوبة {1}.
+Blank applies to every campus.,الفراغ يعني التطبيق على جميع الأحرام المدرسية.
+Block Invoice If Clearance Fails,إيقاف الفاتورة عند فشل التصديق
+Blocking,مانع
+Boys,بنين
+Budget,الميزانية
+Budget Account,حساب الميزانية
+Budget Amount,مبلغ الميزانية
+Budget Available,الميزانية المتاحة
+Budget Control,ضبط الميزانية
+Budget Exceeded,تجاوز الميزانية
+Budget Warning,تنبيه الميزانية
+"Budget exceeded for {0} / {1}. Available {2} (budget {3} less actual {4} and committed {5}), requested {6}.",تجاوز الميزانية لـ {0} / {1}. المتاح {2} (الميزانية {3} ناقص الفعلي {4} والمرتبط {5})، المطلوب {6}.
+"Budget exceeded for {0} / {1}. Available {2}, order {3}.",تجاوز الميزانية لـ {0} / {1}. المتاح {2}، أمر الشراء {3}.
+Budget overruns,تجاوزات الميزانية
+Building,المبنى
+By,بواسطة
+By Academic Term,حسب الفصل الدراسي
+By Academic Year,حسب العام الدراسي
+By Campus,حسب الحرم المدرسي
+By Company,حسب الشركة
+By Department,حسب القسم
+By Grade,حسب الصف
+By School Division,حسب المرحلة
+By Teaching Days,حسب أيام التدريس
+By Term,حسب الفصل
+CSR Configuration,إعداد طلب الشهادة
+Calculation,طريقة الحساب
+Call,اتصال
+Campus,الحرم المدرسي
+Campus Name,اسم الحرم المدرسي
+Campus Name (Arabic),اسم الحرم المدرسي (بالعربية)
+Campus row scoping. A user with no scope row sees no campus-bound records.,تحديد نطاق السجلات حسب الحرم المدرسي. المستخدم بلا نطاق محدد لا يرى أي سجلات مرتبطة بحرم مدرسي.
+Campuses,الأحرام المدرسية
+Cancel credit note {0} first.,ألغِ الإشعار الدائن {0} أولاً.
+Cancel the linked invoice(s) first: {0},ألغِ الفواتير المرتبطة أولاً: {0}
+Cancelled,ملغي
+Cannot Apply Discount,تعذر تطبيق الخصم
+Cannot delete: {0} school division(s) still reference this campus.,تعذر الحذف: ما زالت {0} مرحلة دراسية مرتبطة بهذا الحرم المدرسي.
+Caps the computed discount. Zero means uncapped.,يحدد سقف الخصم المحتسب. الصفر يعني بلا سقف.
+Carries the consumption cost. Defaults from the department.,يحمل تكلفة الاستهلاك. يُستمد افتراضياً من القسم.
+Category,الفئة
+Channel,القناة
+Channels,القنوات
+Children,الأبناء
+City,المدينة
+Class averages below the school mean,فصول دون متوسط المدرسة
+Classes with declining results,فصول ذات نتائج متراجعة
+Cleaning,مواد نظافة
+Cleared,مصدّق
+Cleared On,تاريخ التصديق
+Code,الرمز
+Collection performance,أداء التحصيل
+Collections,التحصيل
+Collector,المحصّل
+"Comma separated. Supported: In-App, Email, SMS, WhatsApp.",مفصولة بفواصل. المدعوم: داخل التطبيق، البريد الإلكتروني، رسالة نصية، واتساب.
+"Comma separated: In-App, Email, SMS, WhatsApp.",مفصولة بفواصل: داخل التطبيق، البريد الإلكتروني، رسالة نصية، واتساب.
+Comments,الملاحظات
+Commercial Registration,السجل التجاري
+Committed,المرتبط
+Company,الشركة
+Company Mismatch,عدم تطابق الشركة
+Completed,مكتمل
+Completed On,تاريخ الإنجاز
+Compliance Certificate,شهادة الامتثال
+Component Eligibility,البنود المشمولة
+Computed On,تاريخ الاحتساب
+Condition,الشرط
+Conditions,الشروط
+Consolidate Sibling Invoices on Payer,دمج فواتير الأشقاء على الدافع
+Consolidation opportunities,فرص دمج المشتريات
+Consumed,المستهلك
+Contact,بيانات التواصل
+Contact Log,سجل التواصل
+Converted,محوّل
+Corporate,مؤسسي
+Corporate Agreement,اتفاقية مؤسسية
+Cost Center,مركز التكلفة
+"Cost Center {0} belongs to company {1}, but this campus belongs to {2}.",مركز التكلفة {0} يتبع الشركة {1}، بينما هذا الحرم المدرسي يتبع {2}.
+Costs,التكاليف
+Coverage,التغطية
+Create Fee Plan On Submit,إنشاء خطة رسوم عند الاعتماد
+Credentials,بيانات الاعتماد
+Credit Balance,الرصيد الدائن
+Credit Note,إشعار دائن
+Cryptographic Chain,السلسلة التشفيرية
+Currency,العملة
+Currency Mismatch,عدم تطابق العملة
+Current,الحالي
+Current Academic Year,العام الدراسي الحالي
+Current Level,المستوى الحالي
+Current Net,الصافي الحالي
+Custody transfer with digital acknowledgement. Blocks separation while open (SKILL sec. 10.4).,نقل عهدة مع إقرار رقمي. يمنع إنهاء الخدمة ما دام مفتوحاً (SKILL sec. 10.4).
+Custom,مخصص
+Custom Gap (days),الفاصل المخصص (أيام)
+Customer,العميل
+Customer {0} does not exist.,العميل {0} غير موجود.
+Customer {0} is already used by payer account {1}. One customer per payer keeps sibling invoices on a single statement.,العميل {0} مستخدم بالفعل في حساب الدافع {1}. عميل واحد لكل دافع يُبقي فواتير الأشقاء في كشف حساب واحد.
+Date,التاريخ
+Days,الأيام
+Days After Due,أيام بعد الاستحقاق
+Days Before Due,أيام قبل الاستحقاق
+Days Overdue,أيام التأخر
+Dedupe Key,مفتاح منع التكرار
+Default Campus,الحرم المدرسي الافتراضي
+Default Campus {0} is not in the granted campus list.,الحرم المدرسي الافتراضي {0} غير مدرج ضمن الأحرام الممنوحة.
+Default Channels,القنوات الافتراضية
+Default Company,الشركة الافتراضية
+Default Fee Income Account,حساب إيراد الرسوم الافتراضي
+Default Store,المستودع الافتراضي
+Default VAT Rate,نسبة ضريبة القيمة المضافة الافتراضية
+Deferred Tuition Revenue Account,حساب الإيرادات الدراسية المؤجلة
+Delayed purchase orders,أوامر الشراء المتأخرة
+Delegated,مفوَّض
+Delivery,التسليم
+Delivery (days),مدة التسليم (أيام)
+Department,القسم
+Department consumption outliers,أقسام ذات استهلاك غير معتاد
+Description,الوصف
+Dimensions,الأبعاد
+Discount,الخصم
+Discount Amount,مبلغ الخصم
+Discount Rule,قاعدة الخصم
+Discount Total,إجمالي الخصم
+Discount Type,نوع الخصم
+Discount amount must be greater than zero.,يجب أن يكون مبلغ الخصم أكبر من صفر.
+Discount application {0} approved. Net payable {1} -> {2}.,تم اعتماد طلب الخصم {0}. الصافي المستحق {1} ← {2}.
+Discount of {0} exceeds the {1} still uninvoiced on this plan. Raise a credit note against the issued invoices instead.,الخصم {0} يتجاوز المبلغ غير المفوتر {1} في هذه الخطة. أصدر إشعاراً دائناً على الفواتير الصادرة بدلاً من ذلك.
+Discountable,قابل للخصم
+Discounts,الخصومات
+Disputed,معترض عليه
+Division Name,اسم المرحلة
+Division Name (Arabic),اسم المرحلة (بالعربية)
+Division Type,نوع المرحلة
+Document,المستند
+Document Number,رقم المستند
+Document Owner,مالك المستند
+Document Type,نوع المستند
+Documents expiring within {0} days,مستندات تنتهي خلال {0} يوماً
+Dotted path resolved against the ags_edusmart KPI registry.,مسار منقوط يُحل من سجل مؤشرات الأداء في ags_edusmart.
+Draft,مسودة
+Drilldown,التفصيل
+Drives which approval tier applies (SKILL sec. 17.7).,يحدد شريحة الاعتماد المطبقة (SKILL sec. 17.7).
+Driving License,رخصة القيادة
+Due Date,تاريخ الاستحقاق
+Duplicate Invoice,فاتورة مكررة
+Durable queue. The dispatcher drains it so a failing gateway never blocks a transaction.,طابور دائم. يفرّغه الموزّع بحيث لا تُعطّل بوابة متعطلة أي معاملة.
+EGS Unit Serial Number,الرقم التسلسلي لوحدة الإصدار
+Early Payment Discount,خصم السداد المبكر
+Early payment discount only holds if settled by this date.,خصم السداد المبكر ساري فقط إذا تم السداد قبل هذا التاريخ.
+Effective Discount %,نسبة الخصم الفعلية
+Eligible Fee Categories,فئات الرسوم المشمولة
+Email,البريد الإلكتروني
+Employee,الموظف
+Empty Scope,نطاق فارغ
+Empty means every role that can read the dashboard.,الفراغ يعني كل دور يستطيع قراءة لوحة المتابعة.
+Enable Commitment Accounting,تفعيل محاسبة الارتباطات
+Enable Deferred Tuition Revenue,تفعيل الإيرادات الدراسية المؤجلة
+Enable GOSI Payroll Components,تفعيل مكونات التأمينات الاجتماعية
+Enable Late Fees,تفعيل رسوم التأخير
+Enable Notification Engine,تفعيل محرك الإشعارات
+Enable ZATCA e-Invoicing,تفعيل الفوترة الإلكترونية (زاتكا)
+Enabled,مفعّل
+Environment,البيئة
+Error,الخطأ
+Escalate After (hours),التصعيد بعد (ساعات)
+Escalate To Role,التصعيد إلى دور
+Escalated,مُصعَّد
+Escalation Level,مستوى التصعيد
+Estimated,المقدّر
+Estimated Total,الإجمالي المقدّر
+Event,الحدث
+Every item in stock has moved in the last {0} months.,جميع أصناف المخزون تحركت خلال {0} أشهر الماضية.
+Exception,الاستثناء
+Executive,الإدارة التنفيذية
+Expected,المتوقع
+Expected collection,التحصيل المتوقع
+Expected from scheduled,المتوقع من المجدول
+Expected recovery,التحصيل المتوقع من المتأخرات
+Expired,منتهي
+Expiring Soon,يوشك على الانتهاء
+Expiry Date,تاريخ الانتهاء
+Exposure,حجم الانكشاف
+Failed,فشل
+Fair,مقبول
+Falling due in window,المستحق خلال الفترة
+Father,الأب
+Fee Category,فئة الرسوم
+Fee Component,بند رسوم
+Fee Components,بنود الرسوم
+Fee Plan,خطة الرسوم
+Fee Structure,هيكل الرسوم
+"Fee category {0} has no linked Item, so it cannot post to a revenue account.",فئة الرسوم {0} غير مرتبطة بصنف، لذا لا يمكن ترحيلها إلى حساب إيراد.
+Fee plan {0} created as draft.,تم إنشاء خطة الرسوم {0} كمسودة.
+Fee plan {0} is cancelled.,خطة الرسوم {0} ملغاة.
+Fee plan {0} is in {1} but {2} bills in {3}. Run `bench --site &lt;site&gt; migrate` to align existing plans.,خطة الرسوم {0} بعملة {1} بينما {2} تفوتر بعملة {3}. نفّذ `bench --site &lt;site&gt; migrate` لمواءمة الخطط الحالية.
+Fee plan {0} is not submitted.,خطة الرسوم {0} غير معتمدة.
+Fees & Collections,الرسوم والتحصيل
+Fees & Payments,الرسوم والمدفوعات
+Field,الحقل
+Field Value,قيمة حقل
+"Field read for threshold routing, e.g. grand_total or discount_percent.",الحقل المقروء لتوجيه الاعتماد حسب الحد، مثل grand_total أو discount_percent.
+"Fieldname holding a User, Employee or Payer Account.",اسم الحقل الذي يحمل مستخدماً أو موظفاً أو حساب دافع.
+Finance,المالية
+Financial Aid,مساعدة مالية
+Financial Summary,الملخص المالي
+Financial payer. Kept separate from the student identity (SKILL sec. 13.4).,الدافع المالي. يُحفظ منفصلاً عن هوية الطالب (SKILL sec. 13.4).
+First Due Date,تاريخ أول استحقاق
+Fiscal Year,السنة المالية
+Fixed Amount,مبلغ ثابت
+Floor,الطابق
+From Amount,من مبلغ
+From Employee,من الموظف
+From Grade,من الصف
+From Grade ({0}) is above To Grade ({1}).,الصف (من) {0} أعلى من الصف (إلى) {1}.
+From Location,من الموقع
+From and to employee are the same.,الموظف المرسل والمستلم متطابقان.
+Full,كامل
+Full Name,الاسم الكامل
+Full Year,السنة كاملة
+Furniture,أثاث
+GOSI Number,رقم التأمينات الاجتماعية
+Gateway Response,استجابة البوابة
+Gender Type,نوع الفصل
+Generated,تم الإنشاء
+Girls,بنات
+Good,جيد
+Good Direction,الاتجاه الإيجابي
+Goods Receipt,استلام البضاعة
+Grace Days,أيام السماح
+Grade,الصف
+"Grant at least one campus, or tick Access All Campuses.",امنح حرماً مدرسياً واحداً على الأقل، أو فعّل خيار الوصول إلى جميع الأحرام.
+Gross,الإجمالي قبل الخصم
+Gross Total,الإجمالي قبل الخصم
+Group-Wide,على مستوى المجموعة
+"Group-level roles (CEO, CFO, Auditor) normally have this set.",الأدوار على مستوى المجموعة (الرئيس التنفيذي، المدير المالي، المراجع) عادةً ما يكون هذا الخيار مفعّلاً لديها.
+Guardian,ولي الأمر
+HR,الموارد البشرية
+Handover {0} is not submitted.,تسليم العهدة {0} غير معتمد.
+Head of Division,رئيس المرحلة
+Health & Support,الصحة والدعم
+High,مرتفعة
+Higher Is Better,الأعلى أفضل
+Historical Rating,التقييم التاريخي
+I could not match that to an analysis I can run. Here is what I can answer for you.,لم أتمكن من مطابقة ذلك مع تحليل أستطيع تشغيله. إليك ما يمكنني الإجابة عنه.
+IT Equipment,أجهزة تقنية
+"If unticked, this rule wins alone and suppresses the rest.",عند عدم التحديد، تُطبق هذه القاعدة وحدها وتلغي بقية القواعد.
+Ignored when the trigger is On Due Date.,يُتجاهل عندما يكون المُشغّل في تاريخ الاستحقاق.
+"Immutable clearance archive, one row per invoice (SKILL sec. 25.1).",أرشيف تصديق غير قابل للتعديل، صف واحد لكل فاتورة (SKILL sec. 25.1).
+In Progress,قيد التنفيذ
+In-App,داخل التطبيق
+Income Account,حساب الإيراد
+Informed,تم الإبلاغ
+Installment,القسط
+Installment #,رقم القسط
+Installment {0} has no billable lines.,القسط {0} لا يحتوي على بنود قابلة للفوترة.
+Installment {0} is already invoiced as {1}.,القسط {0} تمت فوترته بالفعل ضمن {1}.
+Installment {0} not found on {1}.,القسط {0} غير موجود في {1}.
+Installment {0} of {1},القسط {0} من {1}
+Installments,الأقساط
+Installments total {0} does not match the net payable {1}.,إجمالي الأقساط {0} لا يطابق الصافي المستحق {1}.
+Insufficient Stock,المخزون غير كافٍ
+Invalid Identifier,معرّف غير صالح
+Inventory,المخزون
+Invoice,الفاتورة
+Invoice Counter,عداد الفواتير
+Invoice Hash,بصمة الفاتورة
+Invoice Type Code,رمز نوع الفاتورة
+Invoice company {0} does not match the fee plan company {1}.,شركة الفاتورة {0} لا تطابق شركة خطة الرسوم {1}.
+"Invoice {0} belongs to {1}, not {2}.",الفاتورة {0} تخص {1} وليس {2}.
+"Invoice {0} is billed to {1}, not to this payer account.",الفاتورة {0} مفوترة على {1}، وليس على حساب الدافع هذا.
+Invoice {0} is not submitted.,الفاتورة {0} غير معتمدة.
+Invoice {0} not found.,الفاتورة {0} غير موجودة.
+Invoiced,تمت الفوترة
+Invoiced rate {0} exceeds ordered rate {1} by {2}%.,السعر المفوتر {0} يتجاوز السعر المطلوب {1} بنسبة {2}٪.
+Invoiced {0} but only {1} received.,تمت فوترة {0} بينما استُلم {1} فقط.
+Iqama,الإقامة
+Iqama / National ID,الإقامة / الهوية الوطنية
+Iqama / National ID must be 10 digits starting with 1 (citizen) or 2 (resident). Got {0}.,يجب أن تتكون الهوية الوطنية / الإقامة من ١٠ أرقام تبدأ بـ ١ (مواطن) أو ٢ (مقيم). المُدخل: {0}.
+Iqama / National ID {0} already belongs to employee {1}.,الهوية الوطنية / الإقامة {0} تخص الموظف {1} بالفعل.
+Iqama Expiry,انتهاء الإقامة
+Iqama and contract expiry tracking with scheduled reminders (SKILL sec. 11.2/35).,تتبع انتهاء الإقامة والعقود مع تذكيرات مجدولة (SKILL sec. 11.2/35).
+Iqama expires,تنتهي الإقامة
+Iqama expiry,انتهاء الإقامة
+Issue Date,تاريخ الإصدار
+Issue From Store,الصرف من مستودع
+Issue To Department,الصرف إلى قسم
+Issue To Employee,تسليم لموظف
+Issue Unit,وحدة الصرف
+Issued,تم الصرف
+Issued To Employees,يُصرف للموظفين
+Issued To Students,يُصرف للطلاب
+Item,الصنف
+Items,الأصناف
+Items forecast to run out,أصناف يُتوقع نفادها
+Items purchased above their historical price,أصناف اشتُريت بأعلى من سعرها التاريخي
+"Jinja context: payer, student, invoice, amount, due_date, days.",متغيرات Jinja: payer، student، invoice، amount، due_date، days.
+Jinja over `doc`. Example: PO {{ doc.name }} awaiting approval.,تعبير Jinja على `doc`. مثال: أمر الشراء {{ doc.name }} بانتظار الاعتماد.
+Justification,المبرر
+Justification Required,المبرر مطلوب
+KPI,مؤشر الأداء
+KPI Name,اسم مؤشر الأداء
+Keep Query Log For (days),حفظ سجل الاستعلامات لمدة (أيام)
+Kindergarten,رياض الأطفال
+Label,التسمية
+Language,اللغة
+Last Refreshed,آخر تحديث
+Last Reminded,آخر تذكير
+Late Fee Against,رسم تأخير على
+Late Fee Item,صنف رسوم التأخير
+Late Fee Type,نوع رسوم التأخير
+Late Fee Value,قيمة رسوم التأخير
+Leave Balance,رصيد الإجازات
+Leave blank for the provider default.,اتركه فارغاً لاستخدام الإعداد الافتراضي للمزوّد.
+Letter,خطاب
+Level,المستوى
+Levels,المستويات
+License Expiry,انتهاء الرخصة
+"Live receivable case per payer, refreshed nightly from the AR ledger (SKILL sec. 20).",ملف تحصيل حي لكل دافع، يُحدَّث ليلياً من دفتر الذمم المدينة (SKILL sec. 20).
+Location & Contact,الموقع وبيانات التواصل
+Low,منخفضة
+Lower Is Better,الأقل أفضل
+Lower runs first. Order matters once discounts stack.,الأقل يُطبق أولاً. الترتيب مهم عند تجميع الخصومات.
+Lower wins when several matrices match.,الأقل له الأولوية عند تطابق أكثر من مصفوفة.
+Main drivers:,المحركات الرئيسية:
+Maintenance Parts,قطع صيانة
+Maintenance {0}: {1},الصيانة {0}: {1}
+Maps the fee to its revenue account (SKILL sec. 17.1).,يربط الرسم بحساب الإيراد الخاص به (SKILL sec. 17.1).
+Margin %,نسبة الهامش
+Material Request,طلب مواد
+Matrix,المصفوفة
+Max Output Tokens,الحد الأقصى للمخرجات
+Max Retries,الحد الأقصى للمحاولات
+Maximum Amount,الحد الأقصى للمبلغ
+Maximum Per Student,الحد الأقصى لكل طالب
+May Override Budget,يجوز تجاوز الميزانية
+Medical Alert,تنبيه طبي
+Medical Insurance,التأمين الطبي
+Meeting,اجتماع
+Merit,استحقاق
+Message,الرسالة
+Method,الطريقة
+Method Path,مسار الطريقة
+Middle,المتوسط
+Minimum Outstanding,الحد الأدنى للمتبقي
+Mixed,مختلط
+Mobile,الجوال
+Model,النموذج
+Month {0},الشهر {0}
+Monthly,شهري
+Monthly Straight Line,شهري بالقسط الثابت
+Mother,الأم
+My Children,أبنائي
+My Requests,طلباتي
+My Workspace,مساحة عملي
+Name,الاسم
+Name (Arabic),الاسم بالعربية
+Narration,الصياغة النصية
+National ID,الهوية الوطنية
+National ID / Iqama,الهوية الوطنية / الإقامة
+Need Based,حسب الحاجة
+Needs Repair,يحتاج إصلاح
+Net,الصافي
+Net Payable,الصافي المستحق
+New,جديد
+Next Action Date,تاريخ الإجراء التالي
+Next Due Date,تاريخ الاستحقاق التالي
+No Answer,لا يوجد رد
+No Fee Structure matches {0} / {1}; fee plan not created.,لا يوجد هيكل رسوم مطابق لـ {0} / {1}؛ لم تُنشأ خطة الرسوم.
+No account is over budget on actuals. {0} line(s) would exceed budget once open commitments are included.,لا يوجد حساب تجاوز ميزانيته فعلياً. {0} بند سيتجاوز الميزانية عند احتساب الارتباطات المفتوحة.
+No account is over budget.,لا يوجد حساب تجاوز ميزانيته.
+No active employee record is linked to your login.,لا يوجد سجل موظف نشط مرتبط بحسابك.
+No assets are currently issued to you.,لا توجد عهد مسلّمة لك حالياً.
+No budgets are set for {0}.,لا توجد ميزانيات محددة لـ {0}.
+No campus currently carries an overdue balance.,لا يوجد حرم مدرسي لديه رصيد متأخر حالياً.
+"No campus is granted to your account, so no data can be reported. Ask an administrator to set up your AGS User Scope.",لا يوجد حرم مدرسي ممنوح لحسابك، لذا لا يمكن عرض أي بيانات. اطلب من المسؤول إعداد نطاق صلاحيتك.
+No children are linked to your account yet.,لا يوجد أبناء مرتبطون بحسابك بعد.
+No class average has fallen between the two periods.,لم ينخفض متوسط أي فصل بين الفترتين.
+No class sits more than {0} points below the school average of {1}%.,لا يوجد فصل يقل عن متوسط المدرسة ({1}%) بأكثر من {0} نقطة.
+"No current salary structure assignments exist. Based on the last 12 months of posted payslips, payroll is running at {0} a year.",لا توجد هياكل رواتب مسندة حالياً. بناءً على مسيّرات آخر ١٢ شهراً، تبلغ الرواتب {0} سنوياً.
+No department stands out: consumption is evenly spread across {0} departments.,لا يوجد قسم شاذ: الاستهلاك موزع بالتساوي على {0} قسماً.
+No employee document expires in the next {0} days.,لا يوجد مستند موظف ينتهي خلال {0} يوماً القادمة.
+No fee invoices have been raised yet.,لم تُصدر أي فواتير رسوم بعد.
+"No fiscal year covers today, so budgets cannot be evaluated.",لا توجد سنة مالية تغطي تاريخ اليوم، لذا لا يمكن تقييم الميزانيات.
+No goods receipt exists for {0}.,لا يوجد استلام بضاعة للصنف {0}.
+No installments scheduled.,لا توجد أقساط مجدولة.
+No invoices yet.,لا توجد فواتير بعد.
+No item is forecast to run out within {0} days at current usage.,لا يوجد صنف يُتوقع نفاده خلال {0} يوماً بمعدل الاستهلاك الحالي.
+No item was requested more than once in the last {0} days.,لم يُطلب أي صنف أكثر من مرة خلال {0} يوماً الماضية.
+No item's latest price is more than {0}% above its own average.,لا يوجد صنف تجاوز سعره الأخير متوسطه بأكثر من {0}%.
+No leave allocated.,لا يوجد رصيد إجازات مخصص.
+No payer account is linked to your login. Contact the school office.,لا يوجد حساب دافع مرتبط بحسابك. تواصل مع إدارة المدرسة.
+No payer account on student {0}; fee plan not created.,لا يوجد حساب دافع للطالب {0}؛ لم تُنشأ خطة الرسوم.
+No payer is more than {0} days overdue.,لا يوجد دافع متأخر أكثر من {0} يوماً.
+No pending level found on this request.,لا يوجد مستوى معلّق في هذا الطلب.
+No purchase order is past its required date.,لا يوجد أمر شراء تجاوز تاريخه المطلوب.
+No purchase orders were placed in this period.,لم تُصدر أوامر شراء في هذه الفترة.
+No revenue is posted in either period.,لا توجد إيرادات مسجلة في أي من الفترتين.
+"No salary structures are assigned and no payslips have been posted, so payroll cannot be projected.",لا توجد هياكل رواتب مسندة ولا مسيّرات رواتب مرحّلة، لذا لا يمكن توقع الرواتب.
+"No stock has been issued in the last 90 days, so no consumption rate can be measured yet.",لم تُصرف أي مواد خلال ٩٠ يوماً الماضية، لذا لا يمكن قياس معدل الاستهلاك بعد.
+"No student has at least {0} attendance records in this period, so attendance risk cannot be assessed.",لا يوجد طالب لديه {0} سجل حضور على الأقل في هذه الفترة، لذا لا يمكن تقييم خطر الغياب.
+No student is below {0}% attendance.,لا يوجد طالب دون نسبة حضور {0}%.
+Non-moving stock,المخزون الراكد
+Normal,عادية
+Not Applicable,لا ينطبق
+Not enough repeat purchases in this period to compare prices. An item needs at least two orders.,لا توجد مشتريات متكررة كافية في هذه الفترة لمقارنة الأسعار. يحتاج الصنف إلى أمرَي شراء على الأقل.
+Not permitted for this campus.,غير مصرح لهذا الحرم المدرسي.
+Not permitted for this student.,غير مصرح لهذا الطالب.
+Not permitted.,غير مصرح.
+Notes,ملاحظات
+Nothing is currently outstanding.,لا يوجد رصيد متبقٍ حالياً.
+Nothing is scheduled or outstanding in this window.,لا يوجد مجدول أو متبقٍ في هذه الفترة.
+Nothing to waive on invoice {0}.,لا يوجد مبلغ للإعفاء في الفاتورة {0}.
+Notifications,الإشعارات
+Number,عدد
+Number of Installments,عدد الأقساط
+Observed collection rate,معدل التحصيل الملاحظ
+Of which overdue,منها متأخر
+Off by default. Every figure is computed from the ledger either way; a model only rephrases a finished result and can never query data or invent a number.,معطّل افتراضياً. كل رقم يُحتسب من الدفاتر في الحالتين؛ النموذج يعيد صياغة نتيجة جاهزة فقط، ولا يمكنه الاستعلام عن البيانات أو اختلاق رقم.
+Off by default: a gateway outage should not stop the cashier.,معطّل افتراضياً: انقطاع البوابة يجب ألا يوقف أمين الصندوق.
+Oldest Due Date,أقدم تاريخ استحقاق
+On,بتاريخ
+On Cancel,عند الإلغاء
+On Create,عند الإنشاء
+On Due Date,في تاريخ الاستحقاق
+On Hold,معلّق
+On Submit,عند الاعتماد
+On Update,عند التحديث
+One Way,اتجاه واحد
+One configurable engine for every approval in the system (SKILL sec. 23).,محرك واحد قابل للتهيئة لكل اعتمادات النظام (SKILL sec. 23).
+"One payer, many children. Consolidates sibling receivables (SKILL sec. 18).",دافع واحد لعدة أبناء. يوحّد ذمم الأشقاء في حساب واحد (SKILL sec. 18).
+Only {0} can acknowledge this handover.,{0} فقط يمكنه الإقرار باستلام هذه العهدة.
+"Only {0} class-instructor combination(s) have at least five results, which is too few to compare against a school average.",يوجد {0} اقتران بين فصل ومعلم لديه خمس نتائج على الأقل، وهو عدد أقل من أن يقارن بمتوسط المدرسة.
+Only {0} department(s) have issued stock in this period. At least three are needed before one can be called unusual.,صرف {0} قسم فقط مواد في هذه الفترة. يلزم ثلاثة أقسام على الأقل قبل وصف أحدها بأنه غير معتاد.
+Only {0} may act on level {1}.,{0} فقط يمكنه اتخاذ إجراء على المستوى {1}.
+Open,مفتوح
+Operating margin drivers,محركات هامش التشغيل
+"Operating margin is {0}% for {1} → {2}. There is no comparable prior year, so no driver analysis is possible yet.",هامش التشغيل {0}٪ للفترة {1} ← {2}. لا يوجد عام سابق للمقارنة، لذا لا يمكن تحليل المحركات بعد.
+"Operating margin {0} from {1}% to {2}% year on year ({3} percentage points). Revenue {4}, costs {5}.",هامش التشغيل {0} من {1}٪ إلى {2}٪ على أساس سنوي ({3} نقطة مئوية). الإيرادات {4}، التكاليف {5}.
+Optional Python expression over `doc`.,تعبير Python اختياري يُطبّق على `doc`.
+Optional Python expression over `doc`. Example: doc.campus == 'Jeddah'.,تعبير Python اختياري يُطبّق على `doc`. مثال: doc.campus == 'Jeddah'.
+Optional. Leave blank for a one-off exception.,اختياري. اتركه فارغاً للاستثناء لمرة واحدة.
+Optional. Pins the level to one person instead of the whole role.,اختياري. يثبّت المستوى على شخص واحد بدلاً من الدور بأكمله.
+Order {0} belongs to {1}.,أمر الشراء {0} يخص {1}.
+Organisation,التنظيم
+"Original budget less actuals, open orders and approved requests.",الميزانية الأصلية ناقص الفعلي وأوامر الشراء المفتوحة والطلبات المعتمدة.
+Other,أخرى
+Otherwise only the categories listed below are discounted (SKILL sec. 17.6).,وإلا فلن تُخصم سوى الفئات المدرجة أدناه (SKILL sec. 17.6).
+Out Of Service,خارج الخدمة
+Outcome,النتيجة
+Outstanding,المتبقي
+Outstanding school fees,الرسوم الدراسية المتبقية
+Over 120 Days,أكثر من ١٢٠ يوماً
+Over Billing,فوترة زائدة
+"Overall collection is {0}% of {1} billed. The weakest campus is {2} at {3}%, with {4} more than 90 days overdue.",إجمالي التحصيل {0}٪ من {1} مفوترة. الأضعف هو {2} بنسبة {3}٪، مع {4} متأخرة أكثر من ٩٠ يوماً.
+Overdue,متأخر
+Overdue book,رصيد المتأخرات
+Overdue by campus,المتأخرات حسب الحرم المدرسي
+Overdue share,نسبة المتأخر
+Overridden,تم التجاوز
+Override Approval Required,يلزم اعتماد التجاوز
+Ownership,المسؤولية
+PIH. Chains invoices so tampering is detectable.,بصمة الفاتورة السابقة. تربط الفواتير في سلسلة تجعل أي تلاعب قابلاً للكشف.
+Pack Size,حجم العبوة
+Paid,مدفوع
+Parent cost center for every division and department on this campus.,مركز التكلفة الأب لكل مرحلة وقسم في هذا الحرم المدرسي.
+Partial,جزئي
+Partial Payment,سداد جزئي
+Partially Paid,مدفوع جزئياً
+Parties,الأطراف
+Passport,جواز السفر
+Passport Expiry,انتهاء جواز السفر
+Passport expiry,انتهاء جواز السفر
+Pay Before,الدفع قبل
+Pay School Fees,سداد الرسوم الدراسية
+Payer,الدافع
+Payer Account,حساب الدافع
+Payer Mismatch,عدم تطابق الدافع
+Payer Name,اسم الدافع
+Payer Name (Arabic),اسم الدافع (بالعربية)
+Payer account {0} has no customer.,حساب الدافع {0} غير مرتبط بعميل.
+Payers more than {0} days overdue,دافعون متأخرون أكثر من {0} يوماً
+Payload,المحتوى
+Payment Schedule,جدول السداد
+Payment Terms,شروط الدفع
+Pending,قيد الانتظار
+Pending Acknowledgement,بانتظار الإقرار
+Pending Approval,بانتظار الاعتماد
+Percent,نسبة مئوية
+Percent of Overdue,نسبة من المتأخر
+"Percent of the eligible base, or a flat amount.",نسبة مئوية من الأساس المشمول، أو مبلغ ثابت.
+Period,الفترة
+Period End,نهاية الفترة
+Period Start,بداية الفترة
+Permitted,مسموح
+Phase-2 clearance. Requires certificates in AGS ZATCA Settings.,تصديق المرحلة الثانية. يتطلب شهادات مُعدّة في إعدادات الفوترة الإلكترونية.
+Phone,الهاتف
+Please sign in.,الرجاء تسجيل الدخول.
+Portion of this student's fees billed to this payer.,نسبة رسوم هذا الطالب التي تُفوتر على هذا الدافع.
+Posting Date,تاريخ القيد
+Pre-selected on new documents.,محدد مسبقاً في المستندات الجديدة.
+Preferred Channel,القناة المفضلة
+Previous Invoice Hash,بصمة الفاتورة السابقة
+Previous School,المدرسة السابقة
+Price,السعر
+Price Variance,فرق في السعر
+Primary,الابتدائي
+Primary Payer,الدافع الرئيسي
+Principal,المدير
+Principal Exception,استثناء من المدير
+Priority,الأولوية
+Procurement,المشتريات
+Production,بيئة الإنتاج
+Production Certificate,شهادة الإنتاج
+Production Secret,المفتاح السري للإنتاج
+Professional License,الرخصة المهنية
+Professional license expiry,انتهاء الرخصة المهنية
+Program Enrollment,التسجيل الدراسي
+Project,المشروع
+Projected annual payroll,الرواتب السنوية المتوقعة
+"Projected from historical payslips, so it carries last year's headcount rather than today's.",مُتوقَّع من مسيّرات الرواتب التاريخية، لذا يحمل عدد موظفي العام الماضي وليس الحالي.
+Promise To Pay,وعد بالسداد
+Promised Amount,المبلغ الموعود
+Promised Date,التاريخ الموعود
+Promotional Discount,خصم ترويجي
+Proposed Net,الصافي المقترح
+Provider,المزوّد
+Pulls the component lines. Amounts stay editable per student.,يجلب بنود الرسوم. تبقى المبالغ قابلة للتعديل لكل طالب.
+Purchase Order,أمر الشراء
+Purchase Request,طلب الشراء
+Purpose,الغرض
+QR (Base64 TLV),رمز الاستجابة السريعة
+Quantity,الكمية
+Quantity Variance,فرق في الكمية
+Quarter {0},الربع {0}
+Quarterly,ربع سنوي
+Queue For Clearance On Submit,إدراج للتصديق عند الاعتماد
+Queued,في الانتظار
+Quotation,عرض السعر
+RFQ,طلب عروض الأسعار
+Raised automatically when PO / GRN / Invoice disagree (SKILL sec. 8.6).,يُنشأ تلقائياً عند اختلاف أمر الشراء / الاستلام / الفاتورة (SKILL sec. 8.6).
+Ranking is advisory. The award remains a human decision (SKILL sec. 8.4).,الترتيب استرشادي. تبقى الترسية قراراً بشرياً (SKILL sec. 8.4).
+Ratio,نسبة
+"Read-only SELECT. Placeholders: %(company)s, %(campus)s, %(from_date)s, %(to_date)s.",استعلام SELECT للقراءة فقط. المتغيرات: %(company)s، %(campus)s، %(from_date)s، %(to_date)s.
+Reason,السبب
+Receivable Account,حساب المدينين
+Recipient,المستلم
+Recipient Type,نوع المستلم
+Recipients,المستلمون
+Recognition Basis,أساس الاعتراف بالإيراد
+Recommended,موصى به
+Recovery on the overdue book is estimated at half the observed collection rate. Adjust once the school has its own history.,يُقدَّر تحصيل المتأخرات بنصف معدل التحصيل الملاحظ. عدّله عندما يتوفر سجل تاريخي خاص بالمدرسة.
+Reference,المرجع
+Reference Type,نوع المرجع
+Refresh Every (minutes),التحديث كل (دقائق)
+Refused,مرفوض
+Region,المنطقة
+Rejected,مرفوض
+Rejection Reason,سبب الرفض
+Relationship,صلة القرابة
+Released,محرَّر
+Remaining,المتبقي
+Remind Before (days),التذكير قبل (أيام)
+Renewed,مجدَّد
+Reported,تم الإبلاغ
+Request,الطلب
+Request Leave,طلب إجازة
+Requested By,طلب بواسطة
+Requested Discount,الخصم المطلوب
+Require Override Approval,طلب اعتماد التجاوز
+Required Approver Role,دور المعتمد المطلوب
+Required when the award differs from the recommendation.,مطلوب عند اختلاف الترسية عن التوصية.
+Requires Employee Acknowledgement,يتطلب إقرار الموظف
+Resolution,المعالجة
+Resolution Notes,ملاحظات المعالجة
+Resolved,تمت المعالجة
+Resolved By,عولج بواسطة
+Resolved On,تاريخ المعالجة
+Result,النتيجة
+Return Due Date,تاريخ الإرجاع المستحق
+Return To Store,إرجاع للمستودع
+Returnable,قابل للإرجاع
+Returned,تم الإرجاع
+Revenue,الإيرادات
+Revenue Recognition,الاعتراف بالإيراد
+"Revenue is {0} for {1} → {2}, {3} year on year.",الإيرادات {0} للفترة {1} ← {2}، {3} على أساس سنوي.
+Revenue trend,اتجاه الإيرادات
+Role,الدور
+Room,الغرفة
+Room / Location,الغرفة / الموقع
+Routing Basis,أساس التوجيه
+Row {0}: only {1} {2} of {3} available in {4}.,الصف {0}: يتوفر فقط {1} {2} من {3} في {4}.
+Row {0}: quantity must be greater than zero.,الصف {0}: يجب أن تكون الكمية أكبر من صفر.
+Rule,القاعدة
+SLA (hours),مدة الاستجابة (ساعات)
+SLA Due By,موعد الاستجابة
+SMS,رسالة نصية
+SMS Gateway URL,رابط بوابة الرسائل النصية
+SQL Query,استعلام SQL
+Sales Invoice,فاتورة المبيعات
+Same period last year,نفس الفترة من العام الماضي
+Sandbox,بيئة الاختبار
+Saudi Localization,التوطين السعودي
+Scanned Copy,نسخة ممسوحة
+Schedule Type,نوع الجدولة
+Scheduled For,مجدول في
+Scholarship,منحة دراسية
+Scholarship Name,اسم المنحة
+Scholarship {0} is not active.,المنحة {0} غير نشطة.
+School Division,المرحلة الدراسية
+School Item Category,فئة الصنف المدرسي
+School-facing 'Issue Materials'. Posts a Stock Entry of type Material Issue (SKILL sec. 9.5).,"واجهة ""صرف المواد"" المدرسية. تُرحّل حركة مخزون من نوع صرف مواد (SKILL sec. 9.5)."
+Science Supplies,مستلزمات المختبر
+Scope,النطاق
+Scope Applied,النطاق المطبق
+Scope Key,مفتاح النطاق
+Scoring Weights,أوزان التقييم
+Scoring weights must total 100%. They currently total {0}%.,يجب أن يكون مجموع أوزان التقييم ١٠٠٪. المجموع الحالي {0}٪.
+Secondary,الثانوي
+Secret,المفتاح السري
+Select the awarded supplier first.,اختر المورد المرسى عليه أولاً.
+Select the employee receiving the assets.,اختر الموظف المستلم للأصول.
+Select the location the assets are returning to.,اختر الموقع الذي ستُرجع إليه الأصول.
+Self,نفسه
+Seller Identity,بيانات البائع
+Senior,الثانوي العالي
+Sent,أُرسل
+Sent On,تاريخ الإرسال
+Serial No,الرقم التسلسلي
+Series,التسلسل
+Service,خدمة
+Set by the AGS approval matrix. A Purchase Order cannot be raised until this reads Approved.,تُضبط بواسطة مصفوفة الاعتماد. لا يمكن إصدار أمر شراء حتى تصبح الحالة معتمداً.
+Set from the current ZATCA technical spec at deploy time; never hardcoded in code (SKILL sec. 25.1).,يُضبط من المواصفة الفنية الحالية لهيئة الزكاة والضريبة والجمارك عند النشر؛ ولا يُثبّت في الشيفرة إطلاقاً (SKILL sec. 25.1).
+Set on a generated late-fee invoice. Guarantees one late fee per overdue invoice.,يُضبط على فاتورة رسوم التأخير المُنشأة. يضمن رسم تأخير واحد لكل فاتورة متأخرة.
+Set the Deferred Tuition Revenue Account in AGS Settings first.,حدّد حساب الإيرادات الدراسية المؤجلة في إعدادات النظام أولاً.
+Sets Escalation Level,يحدد مستوى التصعيد
+Settled,تمت التسوية
+Severity,الخطورة
+Share %,نسبة المشاركة
+Short code used in naming series and report headers.,رمز مختصر يُستخدم في تسلسل الترقيم وعناوين التقارير.
+Sibling Discount,خصم الأشقاء
+Sibling Index,ترتيب الأشقاء
+Sibling Tier,شريحة الأشقاء
+Side ledger of budget consumed by approved requests and open orders. Never posts to the GL.,دفتر جانبي للميزانية المستهلكة بالطلبات المعتمدة وأوامر الشراء المفتوحة. لا يُرحَّل إلى الأستاذ العام إطلاقاً.
+Signed UBL XML,ملف UBL الموقّع
+Simulation,بيئة المحاكاة
+Skip If Promise To Pay Recorded,التخطي عند وجود وعد بالسداد
+Skipped,تم التخطي
+Source,المصدر
+Source Document,المستند المصدر
+Special Needs,احتياجات خاصة
+Specific Approver,معتمد محدد
+Sponsor,الجهة الراعية
+Sports,مستلزمات رياضية
+"Stable machine key, e.g. revenue_per_student.",مفتاح ثابت للنظام، مثل revenue_per_student.
+Stackable With Other Discounts,قابل للتجميع مع خصومات أخرى
+Staff,الموظفون
+Staff Child Discount,خصم أبناء الموظفين
+State,الحالة
+Statement,كشف الحساب
+Stationery,قرطاسية
+Status,الحالة
+Stock Entry,حركة المخزون
+Stop,إيقاف
+Student,الطالب
+Student Category,فئة الطالب
+Student Name,اسم الطالب
+Student Receivable Account,حساب ذمم الطلاب
+Student {0} is listed twice.,الطالب {0} مُدرج مرتين.
+Student {0} is not listed on payer account {1}. Add the child there first.,الطالب {0} غير مدرج في حساب الدافع {1}. أضف الابن هناك أولاً.
+Student-specific priced plan: structure + discounts + installments (SKILL sec. 17.5).,خطة مسعّرة خاصة بالطالب: الهيكل + الخصومات + الأقساط (SKILL sec. 17.5).
+Students,الطلاب
+Students at attendance risk,طلاب معرضون لخطر الغياب
+Subject,الموضوع
+Submit the fee plan before invoicing.,اعتمد خطة الرسوم قبل إصدار الفواتير.
+Summary Updated,تاريخ تحديث الملخص
+Supplier,المورد
+Supplier Invoice,فاتورة المورد
+Supplier Mismatch,عدم تطابق المورد
+Supplier Rating,تقييم المورد
+Supplier bill {0} is already booked as {1}.,فاتورة المورد {0} مُقيَّدة بالفعل باسم {1}.
+Supplier performance,أداء الموردين
+Suppliers,الموردون
+Support Notes,ملاحظات الدعم
+Supporting Document,مستند داعم
+System Recommendation,توصية النظام
+System Reminder,تذكير آلي
+Target,المستهدف
+Task '{0}' on {1} is due {2}.,المهمة '{0}' على {1} مستحقة بتاريخ {2}.
+Tax Variance,فرق في الضريبة
+Term {0},الفصل {0}
+Terms Of Custody,شروط العهدة
+Textbooks,كتب دراسية
+The awarded supplier has no linked Supplier Quotation to convert.,المورد المرسى عليه ليس لديه عرض سعر مرتبط لتحويله.
+The native Material Issue this document posts.,حركة صرف المواد الأصلية التي يُرحّلها هذا المستند.
+"The query log records who ran which analysis and under what scope, including refusals. Refusals are the useful half: a run of them is how you notice someone probing outside their scope.",يسجل سجل الاستعلامات من شغّل أي تحليل وضمن أي نطاق، بما في ذلك حالات الرفض. حالات الرفض هي النصف المفيد: تكرارها هو ما يكشف محاولة الوصول خارج النطاق المصرح به.
+The receivable entity. One customer per payer keeps sibling invoices on a single statement.,الجهة المدينة. عميل واحد لكل دافع يُبقي فواتير الأشقاء في كشف حساب واحد.
+The scheduler recomputes at most this often; dashboards read the snapshot.,يعيد المجدول الاحتساب بهذا المعدل كحد أقصى؛ ولوحات المتابعة تقرأ اللقطة.
+"The school average is {0}%. {1} class(es) sit more than {2} points below it. The widest gap is {3} ({4}) at {5}%, {6} points below.",متوسط المدرسة {0}٪. {1} فصل يقل عنه بأكثر من {2} نقطة. أوسع فارق هو {3} ({4}) بنسبة {5}٪، أي أقل بـ {6} نقطة.
+The waiver posts a credit note against this invoice.,يصدر الإعفاء إشعاراً دائناً على هذه الفاتورة.
+"There are not two comparable periods of assessment results yet, so a trend cannot be measured.",لا توجد فترتان قابلتان للمقارنة من نتائج التقييم بعد، لذا لا يمكن قياس الاتجاه.
+There is no posted revenue in either period to compare.,لا توجد إيرادات مسجلة في أي من الفترتين للمقارنة.
+There is not enough data to answer this confidently yet.,لا تتوفر بيانات كافية للإجابة على هذا بثقة حتى الآن.
+"This case still has {0} overdue. Use 'Written Off' if the debt is being written off, or collect the balance first.","ما زال في هذا الملف {0} متأخر. استخدم حالة ""مشطوب"" إذا كان الدين سيُشطب، أو حصّل الرصيد أولاً."
+This discount has already been applied to {0}. Raise a new application to reverse it.,تم تطبيق هذا الخصم بالفعل على {0}. أصدر طلباً جديداً لعكسه.
+This period,هذه الفترة
+This request is already {0}.,هذا الطلب {0} بالفعل.
+Three-Way Match Failed,فشل المطابقة الثلاثية
+Title,العنوان
+To Amount,إلى مبلغ
+To Employee,إلى الموظف
+To Grade,إلى الصف
+To Location,إلى الموقع
+Total,الإجمالي
+Total Billed,إجمالي المفوتر
+Total Outstanding,إجمالي المتبقي
+Total Paid,إجمالي المدفوع
+Total Quantity,إجمالي الكمية
+Total Value,إجمالي القيمة
+Totals,الإجماليات
+Trail,المسار
+Transfer Between Employees,نقل بين موظفين
+Transportation,النقل المدرسي
+Trigger,المُشغّل
+Tuition collected up front is parked in a liability and released monthly (SKILL sec. 5.4).,الرسوم الدراسية المحصلة مقدماً تُقيَّد كالتزام ويُعترف بها شهرياً (SKILL sec. 5.4).
+Two Way,اتجاهان
+Type,النوع
+Uniform,الزي المدرسي
+Unit,الوحدة
+Unknown analysis: {0},تحليل غير معروف: {0}
+Unreceived Item,صنف غير مستلم
+Unticked means the analysis was refused for this user.,عدم التحديد يعني أن التحليل رُفض لهذا المستخدم.
+Upcoming Installments,الأقساط القادمة
+Urgent,عاجلة
+Use A Language Model To Phrase Answers,استخدام نموذج لغوي لصياغة الإجابات
+Used to build the fee plan on enrollment.,يُستخدم لبناء خطة الرسوم عند التسجيل.
+User,المستخدم
+VAT Registration Number,الرقم الضريبي
+Valid,ساري
+Valid From,صالح من
+Valid To,صالح حتى
+Validity,مدة الصلاحية
+Valuation Rate,سعر التقييم
+Value,القيمة
+Value Change,تغير القيمة
+Value Changed Field,حقل تغير القيمة
+Variance,الانحراف
+Visibility,الظهور
+Visible To Roles,ظاهر للأدوار
+Waiver Amount,مبلغ الإعفاء
+Waiver amount must be greater than zero.,يجب أن يكون مبلغ الإعفاء أكبر من صفر.
+Waiver of {0} exceeds the {1} outstanding on invoice {2}.,الإعفاء {0} يتجاوز المبلغ المتبقي {1} في الفاتورة {2}.
+Waiver of {0} exceeds the {1} outstanding.,الإعفاء {0} يتجاوز المبلغ المتبقي {1}.
+Warn,تنبيه
+Warning,تحذير
+Warning Threshold,حد التحذير
+Warranty,الضمان
+Warranty (months),الضمان (أشهر)
+Weighted Score,النتيجة المرجحة
+Weighted score only. The award below stays a human decision (SKILL sec. 8.4).,نتيجة مرجحة فقط. تبقى الترسية أدناه قراراً بشرياً (SKILL sec. 8.4).
+WhatsApp,واتساب
+WhatsApp Gateway URL,رابط بوابة واتساب
+"Who asked which analysis, under what scope. Includes refusals.",من طلب أي تحليل وضمن أي نطاق. يشمل حالات الرفض.
+Work Contract,عقد العمل
+Workbooks,كتب تمارين
+Written Off,مشطوب
+Yes,نعم
+You do not have access to campus {0}.,ليس لديك صلاحية الوصول إلى الحرم المدرسي {0}.
+You have not raised any requests.,لم تقم بتقديم أي طلبات.
+Your role does not permit the analysis '{0}'.,دورك لا يسمح بتشغيل التحليل '{0}'.
+Zero means no upper bound.,الصفر يعني عدم وجود حد أعلى.
+all campuses,جميع الأحرام المدرسية
+"code + every dimension. One row per scope, upserted on refresh.",الرمز + كل الأبعاد. صف واحد لكل نطاق، يُحدَّث عند إعادة الاحتساب.
+down {0}%,انخفاض {0}%
+due,مستحقة
+e.g. Grade 9 Laboratory.,مثال: مختبر الصف التاسع.
+expires soon,يوشك على الانتهاء
+fell,انخفض
+flat,دون تغيير
+has expired,منتهي الصلاحية
+has no prior-year comparison,لا توجد مقارنة بالعام السابق
+held,استقر
+overdue,متأخرة
+rose,ارتفع
+rule + invoice + scheduled day. Guarantees one send per rule per day.,القاعدة + الفاتورة + اليوم المجدول. يضمن إرسالاً واحداً لكل قاعدة يومياً.
+up {0}%,ارتفاع {0}%
+"{0} account(s) are over budget for {1}, by {2} in total. The largest is {3} at {4} over ({5}%).",{0} حساب تجاوز ميزانيته لـ {1}، بإجمالي {2}. الأكبر هو {3} بتجاوز {4} ({5}٪).
+{0} active employee(s) on current structures annualise to {1}.,{0} موظف نشط على الهياكل الحالية يعادلون سنوياً {1}.
+{0} blocking three-way match exception(s) on this invoice:<br>{1},{0} استثناء مانع في المطابقة الثلاثية على هذه الفاتورة:<br>{1}
+{0} cannot be before the joining date.,لا يمكن أن يكون {0} قبل تاريخ الالتحاق.
+"{0} carries no campus field, so this figure is group-wide rather than restricted to your campuses.",{0} لا يحتوي على حقل حرم مدرسي، لذا هذا الرقم على مستوى المجموعة وليس مقتصراً على أحرامك المدرسية.
+"{0} carries the highest overdue balance at {1}, which is {2}% of what has been billed there.",{0} لديه أعلى رصيد متأخر بمبلغ {1}، أي {2}٪ مما تمت فوترته فيه.
+"{0} class(es) show a lower average than the previous period. The largest fall is {1}, from {2}% to {3}% ({4} points).",{0} فصل يُظهر متوسطاً أقل من الفترة السابقة. أكبر انخفاض هو {1}، من {2}٪ إلى {3}٪ ({4} نقطة).
+"{0} department(s) consume unusually more than the rest. {1} is the clearest, at {2} against a median of {3}.",{0} قسم يستهلك أكثر من غيره بشكل غير معتاد. الأوضح هو {1}، بمبلغ {2} مقابل وسيط {3}.
+"{0} document(s) expire within {1} days, of which {2} have already expired. Soonest: {3}'s {4} on {5}.",{0} مستند ينتهي خلال {1} يوماً، منها {2} منتهية بالفعل. الأقرب: {4} الخاص بـ {3} بتاريخ {5}.
+{0} for {1} expires on {2}.,{0} الخاص بـ {1} ينتهي بتاريخ {2}.
+{0} is outstanding across {1} payer account(s); {2} of that is already overdue.,يوجد {0} متبقٍ على {1} حساب دافع؛ منها {2} متأخرة السداد بالفعل.
+"{0} item(s) are forecast to run out within {1} days at current usage. The most urgent is {2}, with {3} left and about {4} days of cover.",{0} صنف يُتوقع نفاده خلال {1} يوماً بمعدل الاستهلاك الحالي. الأكثر إلحاحاً هو {2}، بكمية متبقية {3} وتغطية نحو {4} يوماً.
+"{0} item(s) were last bought more than {1}% above their average price. The largest gap is {2}, last bought at {3} against an average of {4} ({5}% higher).",{0} صنف اشتُري آخر مرة بأعلى من متوسط سعره بأكثر من {1}٪. أكبر فارق هو {2}، اشتُري بـ {3} مقابل متوسط {4} (أعلى بـ {5}٪).
+{0} item(s) were requested on more than one separate request in the last {1} days. {2} leads with {3} requests totalling {4} units - buying those together would consolidate the order.,{0} صنف طُلب في أكثر من طلب منفصل خلال {1} يوماً الماضية. {2} في المقدمة بـ {3} طلبات بإجمالي {4} وحدة - شراؤها معاً يوحّد الأمر.
+{0} item(s) worth {1} have not moved in {2} months. The largest holding is {3} at {4}.,{0} صنف بقيمة {1} لم تتحرك خلال {2} أشهر. أكبر رصيد هو {3} بقيمة {4}.
+"{0} order(s) are late, with about {1} still undelivered. The worst is {2} from {3}, {4} days past its required date.",{0} أمر شراء متأخر، بقيمة {1} تقريباً لم تُسلَّم بعد. الأسوأ هو {2} من {3}، متأخر {4} يوماً عن تاريخه المطلوب.
+"{0} payer(s) are more than {1} days overdue, owing {2} between them. The largest is {3} at {4}, {5} days past due.",{0} دافع متأخرون أكثر من {1} يوماً، بإجمالي {2}. الأكبر هو {3} بمبلغ {4}، متأخر {5} يوماً.
+{0} still holds assets under handover(s) {1}. Return or reassign them before completing separation.,ما زال لدى {0} عهد ضمن {1}. أرجعها أو أعد إسنادها قبل إتمام إنهاء الخدمة.
+{0} student(s) are below {1}% attendance. The lowest is {2} at {3}% ({4} absences from {5} recorded days).,{0} طالب دون نسبة حضور {1}٪. الأدنى هو {2} بنسبة {3}٪ ({4} غياباً من {5} يوماً مسجلاً).
+"{0} supplier(s) were used. {1} ranks highest: {2}% of orders completed, {3} days average lead time, {4} invoice mismatch(es) across {5} order(s).",تم التعامل مع {0} مورد. {1} في المرتبة الأولى: {2}٪ من الأوامر مكتملة، متوسط مدة توريد {3} يوماً، و{4} حالة عدم تطابق فواتير عبر {5} أمر.
+{0} was due to return assets on {1}.,كان على {0} إرجاع العهد بتاريخ {1}.
+{0} {1} for {2},{0} {1} لـ {2}
+{0} {1} is still awaiting approval.,{0} {1} ما زال بانتظار الاعتماد.
+{0} {1} was rejected in approval.,{0} {1} تم رفضه في الاعتماد.

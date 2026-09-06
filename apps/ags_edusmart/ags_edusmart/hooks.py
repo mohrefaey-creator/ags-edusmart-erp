@@ -136,6 +136,7 @@ scheduler_events = {
 		"ags_edusmart.ags_hr.expiry.notify_document_expiry",
 		"ags_edusmart.ags_assets.maintenance.notify_due_maintenance",
 		"ags_edusmart.ags_procurement.commitments.reconcile_commitments",
+		"ags_edusmart.ags_ai.maintenance.purge_query_log",
 	],
 	"monthly_long": [
 		"ags_edusmart.ags_fees.deferred_revenue.ensure_deferred_configuration",

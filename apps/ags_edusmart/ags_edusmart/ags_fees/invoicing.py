@@ -46,6 +46,18 @@ def create_invoice_for_installment(fee_plan: str, installment_no: int) -> str:
 	if not customer:
 		frappe.throw(_("Payer account {0} has no customer.").format(plan.payer_account))
 
+	# Fail here, with a sentence that names the fix, rather than at submit with
+	# ERPNext's "Party Account currency ... should be same". A plan created
+	# before the currency defaults were aligned still carries the user default.
+	company_currency = frappe.get_cached_value("Company", plan.company, "default_currency")
+	if plan.currency and company_currency and plan.currency != company_currency:
+		frappe.throw(
+			_("Fee plan {0} is in {1} but {2} bills in {3}. Run "
+			  "`bench --site &lt;site&gt; migrate` to align existing plans.")
+			.format(plan.name, plan.currency, plan.company, company_currency),
+			title=_("Currency Mismatch"),
+		)
+
 	posting_date, due_date = _posting_and_due(plan.company, row.due_date)
 
 	invoice = frappe.new_doc("Sales Invoice")

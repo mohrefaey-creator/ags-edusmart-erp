@@ -1,0 +1,125 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-09-06 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "sb_narration",
+  "enable_narration",
+  "provider",
+  "model",
+  "cb_narration",
+  "api_base",
+  "api_key",
+  "max_output_tokens",
+  "sb_retention",
+  "query_log_retention_days"
+ ],
+ "fields": [
+  {
+   "fieldname": "sb_narration",
+   "fieldtype": "Section Break",
+   "label": "Narration"
+  },
+  {
+   "fieldname": "enable_narration",
+   "fieldtype": "Check",
+   "label": "Use A Language Model To Phrase Answers",
+   "default": "0",
+   "description": "Off by default. Every figure is computed from the ledger either way; a model only rephrases a finished result and can never query data or invent a number."
+  },
+  {
+   "fieldname": "provider",
+   "fieldtype": "Select",
+   "label": "Provider",
+   "options": "Anthropic\nOpenAI-Compatible",
+   "default": "Anthropic",
+   "depends_on": "enable_narration"
+  },
+  {
+   "fieldname": "model",
+   "fieldtype": "Data",
+   "label": "Model",
+   "default": "claude-sonnet-5",
+   "depends_on": "enable_narration"
+  },
+  {
+   "fieldname": "cb_narration",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "api_base",
+   "fieldtype": "Data",
+   "label": "API Base URL",
+   "depends_on": "enable_narration",
+   "description": "Leave blank for the provider default."
+  },
+  {
+   "fieldname": "api_key",
+   "fieldtype": "Password",
+   "label": "API Key",
+   "depends_on": "enable_narration"
+  },
+  {
+   "fieldname": "max_output_tokens",
+   "fieldtype": "Int",
+   "label": "Max Output Tokens",
+   "default": "400",
+   "depends_on": "enable_narration"
+  },
+  {
+   "fieldname": "sb_retention",
+   "fieldtype": "Section Break",
+   "label": "Audit Retention"
+  },
+  {
+   "fieldname": "query_log_retention_days",
+   "fieldtype": "Int",
+   "label": "Keep Query Log For (days)",
+   "default": "180",
+   "description": "The query log records who ran which analysis and under what scope, including refusals. Refusals are the useful half: a run of them is how you notice someone probing outside their scope."
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-06 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "AGS AI",
+ "name": "AGS AI Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "permlevel": 0,
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "share": 1,
+   "print": 1,
+   "email": 1
+  },
+  {
+   "role": "AGS Finance Manager",
+   "permlevel": 0,
+   "read": 1,
+   "write": 0,
+   "create": 0,
+   "delete": 0,
+   "report": 1,
+   "export": 1,
+   "share": 1,
+   "print": 1,
+   "email": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "issingle": 1,
+ "track_changes": 1
+}

@@ -10,6 +10,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+import specs_ai
 import specs_core
 import specs_fees
 import specs_ops
@@ -32,7 +33,7 @@ def main() -> int:
 	ensure_module_packages(APP_ROOT, MODULES)
 
 	all_specs = []
-	for source in (specs_core, specs_fees, specs_ops, specs_platform):
+	for source in (specs_core, specs_fees, specs_ops, specs_platform, specs_ai):
 		all_specs.extend(source.specs())
 
 	seen: set[str] = set()
