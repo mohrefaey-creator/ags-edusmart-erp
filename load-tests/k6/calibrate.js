@@ -18,16 +18,30 @@
 // when the server slows, which hides the knee instead of finding it.
 
 import http from 'k6/http';
+import exec from 'k6/execution';
 import { check } from 'k6';
 import { Trend, Counter } from 'k6/metrics';
 
 const BASE = __ENV.BASE_URL || 'http://localhost:8000';
 const WORKERS = Number(__ENV.WORKERS || 1);
 const PEAK = Number(__ENV.PEAK_RPS || 60);
-const STEP = __ENV.STEP || '30s';
+const STEP_S = Number(__ENV.STEP_SECONDS || 30);
+const HOLD_S = Number(__ENV.HOLD_SECONDS || 60);
+
+// The portal read SLO from school-day.js. Throughput measured while p95 is
+// above this is not capacity, it is queueing.
+const READ_SLO_MS = 500;
 
 const readLatency = new Trend('ags_read_latency', true);
+// Measured over the flat hold only — see the note on the stages below.
+const peakLatency = new Trend('ags_peak_latency', true);
+const peakReqs = new Counter('ags_peak_reqs');
 const errors = new Counter('ags_errors');
+
+// The window, in seconds from test start, during which arrival rate is flat at
+// PEAK. Everything before it is ramp.
+const HOLD_FROM = STEP_S * 4;
+const HOLD_TO = HOLD_FROM + HOLD_S;
 
 export const options = {
   scenarios: {
@@ -40,11 +54,16 @@ export const options = {
       preAllocatedVUs: Math.max(50, PEAK * 2),
       maxVUs: Math.max(200, PEAK * 8),
       stages: [
-        { duration: STEP, target: Math.round(PEAK * 0.15) },
-        { duration: STEP, target: Math.round(PEAK * 0.35) },
-        { duration: STEP, target: Math.round(PEAK * 0.55) },
-        { duration: STEP, target: Math.round(PEAK * 0.75) },
-        { duration: STEP, target: PEAK },
+        { duration: `${STEP_S}s`, target: Math.round(PEAK * 0.25) },
+        { duration: `${STEP_S}s`, target: Math.round(PEAK * 0.5) },
+        { duration: `${STEP_S}s`, target: Math.round(PEAK * 0.75) },
+        { duration: `${STEP_S}s`, target: PEAK },
+        // The stage that matters. Every stage above *interpolates* toward its
+        // target, so the arrival rate is still climbing throughout them —
+        // averaging over the whole run would report roughly half the rate the
+        // server actually sustained and would libel the capacity model as
+        // optimistic. Only this flat hold is a throughput measurement.
+        { duration: `${HOLD_S}s`, target: PEAK },
         { duration: '15s', target: 0 },
       ],
     },
@@ -53,8 +72,6 @@ export const options = {
   // SLO. school-day.js is the one that gates.
   discardResponseBodies: false,
 };
-
-let sessionCookie = null;
 
 export function setup() {
   const usr = __ENV.USER || 'Administrator';
@@ -89,37 +106,74 @@ export default function (data) {
   readLatency.add(res.timings.duration);
   if (res.status >= 400) errors.add(1);
   check(res, { 'ok': (r) => r.status === 200 });
+
+  // Attribute this request to the flat hold if that is where it landed.
+  const elapsed = exec.instance.currentTestRunDuration / 1000;
+  if (elapsed >= HOLD_FROM && elapsed < HOLD_TO) {
+    peakReqs.add(1);
+    peakLatency.add(res.timings.duration);
+  }
 }
 
 export function handleSummary(data) {
   const m = data.metrics;
-  const rps = m.http_reqs ? m.http_reqs.values.rate : 0;
-  const p95 = m.ags_read_latency ? m.ags_read_latency.values['p(95)'] : 0;
-  const p50 = m.ags_read_latency ? m.ags_read_latency.values.med : 0;
-  const failed = m.http_req_failed ? m.http_req_failed.values.rate * 100 : 0;
+  const val = (name, key) => (m[name] ? m[name].values[key] : 0);
+
+  // Throughput and latency from the flat hold only.
+  const holdReqs = val('ags_peak_reqs', 'count');
+  const rps = holdReqs / HOLD_S;
+  const p95 = val('ags_peak_latency', 'p(95)');
+  const p50 = val('ags_peak_latency', 'med');
+  const failed = val('http_req_failed', 'rate') * 100;
   const perWorker = WORKERS ? rps / WORKERS : rps;
+
+  // Throughput achieved while p95 is over the SLO is requests piling up in the
+  // listen queue, not capacity. Saying so is the difference between a
+  // calibration and a number that flatters the model.
+  const withinSlo = p95 > 0 && p95 < READ_SLO_MS;
 
   const lines = [
     '',
     'AGS EduSmart — single-node calibration',
     '======================================',
     `  gunicorn workers      ${WORKERS}`,
+    `  measured over         the flat ${HOLD_S}s hold at ${PEAK} req/s offered`,
+    `                        (ramp stages excluded — they are not throughput)`,
+    '',
     `  sustained throughput  ${rps.toFixed(1)} req/s`,
     `  per worker            ${perWorker.toFixed(2)} req/s`,
     `  p50 latency           ${p50.toFixed(0)} ms`,
-    `  p95 latency           ${p95.toFixed(0)} ms`,
+    `  p95 latency           ${p95.toFixed(0)} ms  (SLO ${READ_SLO_MS} ms)`,
     `  errors                ${failed.toFixed(2)}%`,
     '',
-    '  Model check (docs/capacity-model.md §3)',
-    `    assumed  9.00 req/s per worker`,
-    `    measured ${perWorker.toFixed(2)} req/s per worker`,
-    `    verdict  ${perWorker >= 9 ? 'model is CONSERVATIVE — headroom exists'
-                                  : 'model is OPTIMISTIC — node count must rise'}`,
-    '',
-    `  Implied nodes for the 625 req/s design peak at 70% utilisation:`,
-    `    ${WORKERS ? Math.ceil(625 / (perWorker * 0.7) / 17) : '?'} nodes of 17 workers`,
-    '',
   ];
+
+  if (!withinSlo) {
+    lines.push(
+      '  ** p95 is ABOVE the read SLO at this offered rate. **',
+      '  The node was saturated, so the throughput above is the queue draining,',
+      `  not sustainable capacity. Re-run with a lower -e PEAK_RPS (try`,
+      `  ${Math.max(2, Math.round(PEAK * 0.6))}) until p95 lands under ${READ_SLO_MS} ms, and calibrate from that run.`,
+      '',
+    );
+  } else {
+    lines.push(
+      '  Model check (docs/capacity-model.md §3)',
+      '    assumed  9.00 req/s per worker',
+      `    measured ${perWorker.toFixed(2)} req/s per worker`,
+      `    verdict  ${perWorker >= 9 ? 'model is CONSERVATIVE — headroom exists'
+                                     : 'model is OPTIMISTIC — node count must rise'}`,
+      '',
+      '  Implied nodes for the 625 req/s design peak at 70% utilisation:',
+      `    ${perWorker > 0 ? Math.ceil(625 / (perWorker * 0.7 * 17)) : '?'} nodes of 17 workers`,
+      '',
+      `  NOTE: the offered rate was capped at ${PEAK} req/s and p95 stayed under`,
+      '  the SLO, so this is a lower bound on the node\'s capacity, not its knee.',
+      `  Raise -e PEAK_RPS until p95 crosses ${READ_SLO_MS} ms to find the actual knee.`,
+      '',
+    );
+  }
+
   return {
     stdout: lines.join('\n'),
     'calibration.json': JSON.stringify(data, null, 2),
