@@ -1,0 +1,25 @@
+# The build context is sent from a Windows mount, so keeping it small is the
+# difference between a few seconds and a few minutes before the build starts.
+.git
+apps/ags_edusmart/.git
+**/__pycache__
+**/*.py[cod]
+**/node_modules
+**/*.egg-info
+
+# Not needed to build or run the image.
+docs/
+load-tests/
+infra/k8s/
+infra/observability/
+infra/supervisor/
+infra/mariadb/
+infra/redis/
+infra/nginx/
+scripts/
+*.md
+!apps/ags_edusmart/README.md
+
+.env
+*.log
+dump.rdb
