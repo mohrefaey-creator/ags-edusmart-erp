@@ -46,7 +46,7 @@ purchase_requests|/api/method/frappe.client.get_list?doctype=Material%20Request&
 payer_account|/api/method/frappe.client.get_list?doctype=AGS%20Payer%20Account&limit_page_length=5
 kpi_read|/api/method/ags_edusmart.ags_dashboards.kpi_engine.read'
 
-for user in lt.parent@loadtest.invalid lt.teacher@loadtest.invalid lt.staff@loadtest.invalid; do
+for user in lt.parent001@loadtest.invalid lt.teacher001@loadtest.invalid lt.staff001@loadtest.invalid; do
   : > "${JAR}"
   code=$(curl -s -m 10 --resolve "${RESOLVE}" -c "${JAR}" \
     -d "usr=${user}" -d "pwd=${LOADTEST_PASSWORD}" \

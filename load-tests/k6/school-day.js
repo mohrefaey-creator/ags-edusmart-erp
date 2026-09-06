@@ -173,10 +173,17 @@ export const options = {
 // One session per VU, established on its first iteration and reused.
 //
 // k6 gives each VU its own module instance, so this module-level variable is
-// per-VU state. Logging in on *every* iteration would make roughly a third of
-// all traffic authentication, which is nothing like a real day: a parent signs
-// in once and then reads. Getting this wrong makes the whole profile measure
-// the auth path instead of the read path.
+// per-VU state and survives between iterations. Logging in on *every* iteration
+// would make roughly a third of all traffic authentication, which is nothing
+// like a real day: a parent signs in once and then reads.
+//
+// The sid is held explicitly and sent as a header on every request, rather than
+// left to k6's cookie jar. That is not belt-and-braces — it is required. k6
+// empties the per-VU cookie jar **at the start of each iteration**, while this
+// variable survives, so caching the login and relying on the jar means every
+// iteration after the first arrives as Guest. That combination failed 93% of a
+// full run with "Login to access", which looks exactly like a permissions bug
+// in the application and is entirely a bug in this file.
 let session = null;
 
 function login(user) {
@@ -191,17 +198,48 @@ function login(user) {
   loginFailures.add(!ok);
   if (ok) {
     const sid = res.cookies['sid'];
-    session = sid && sid.length ? sid[0].value : 'cookie-jar';
+    // No fallback to a sentinel string: a bogus sid would be sent on every
+    // subsequent request and fail as Guest, which is the failure this whole
+    // comment is about.
+    session = sid && sid.length ? sid[0].value : null;
+    if (!session) {
+      loginFailures.add(true);
+      return false;
+    }
   }
   return ok;
 }
 
+// Every authenticated request goes through this, so the sid is attached in
+// exactly one place.
+function authHeaders(name) {
+  const params = { tags: { name }, headers: {} };
+  if (session) params.headers['Cookie'] = `sid=${session}`;
+  return params;
+}
+
+// A high failure rate is useless without knowing what came back. k6 reports the
+// rate and nothing else, and a run that is 93% 403s looks identical in the
+// summary to one that is 93% timeouts — while meaning something completely
+// different. This prints the first few, then goes quiet so a genuinely broken
+// run does not produce megabytes of log.
+let sampled = 0;
+const SAMPLE_LIMIT = Number(__ENV.FAILURE_SAMPLES || 8);
+
+function sampleFailure(name, res) {
+  if (sampled >= SAMPLE_LIMIT) return;
+  sampled += 1;
+  const body = (res.body || '').slice(0, 200).replace(/\s+/g, ' ');
+  console.error(`FAIL ${name} status=${res.status} vu=${exec.vu.idInTest} body=${body}`);
+}
+
 function apiGet(path, params, trend, name) {
-  const res = http.get(`${BASE}${path}`, { tags: { name } });
+  const res = http.get(`${BASE}${path}`, authHeaders(name));
   trend.add(res.timings.duration);
   if (res.status >= 500) {
     businessErrors.add(1);
   }
+  if (res.status !== 200) sampleFailure(name, res);
   check(res, { [`${name} ok`]: (r) => r.status === 200 });
   return res;
 }
