@@ -6,7 +6,7 @@
 # that faces the internet.
 #
 # ---------------------------------------------------------------------------
-# Two base-image constraints that are NOT free choices. Both were found by a
+# Three base-image constraints that are NOT free choices. Each was found by a
 # build failing, not by reading docs:
 #
 #   Python 3.14 exactly.  frappe 16 pins `requires-python = ">=3.14,<3.15"`.
@@ -20,6 +20,9 @@
 #
 #   Debian bookworm, not trixie.  wkhtmltopdf renders every fee invoice and
 #     payslip, and it is not packaged in newer Debian releases.
+#
+#   cron.  `bench init` shells out to crontab; slim images have no cron, and
+#     its absence aborts init with a message that never mentions it.
 # ---------------------------------------------------------------------------
 
 ARG PYTHON_IMAGE=python:3.14-slim-bookworm
@@ -73,15 +76,41 @@ RUN bench init \
         /home/frappe/frappe-bench
 
 WORKDIR /home/frappe/frappe-bench
-RUN bench get-app --branch ${ERPNEXT_BRANCH}   --resolve-deps erpnext \
- && bench get-app --branch ${HRMS_BRANCH}      --resolve-deps hrms \
- && bench get-app --branch ${EDUCATION_BRANCH} --resolve-deps education
+
+# Declared here rather than with the other branch args so that adding it does
+# not invalidate the cached `bench init` layer above it.
+ARG PAYMENTS_BRANCH=version-16
+
+# Explicit URLs, and deliberately NO --resolve-deps.
+#
+# With --resolve-deps, fetching hrms re-resolves its dependency on the erpnext
+# that was just installed, fails to match its version (the shallow clone has no
+# symbolic upstream/HEAD, so the branch check errors), decides "Incompatible
+# version of erpnext is already installed", and then tries to fetch an app
+# literally named `frappe/erpnext` — producing
+# `No such file or directory: './apps/frappe/erpnext/erpnext/__init__.py'`.
+#
+# Listing every app explicitly is what apps.json already does, so this also
+# keeps the image and the deployment definition saying the same thing.
+RUN bench get-app --branch ${ERPNEXT_BRANCH}   https://github.com/frappe/erpnext \
+ && bench get-app --branch ${PAYMENTS_BRANCH}  https://github.com/frappe/payments \
+ && bench get-app --branch ${HRMS_BRANCH}      https://github.com/frappe/hrms \
+ && bench get-app --branch ${EDUCATION_BRANCH} https://github.com/frappe/education
 
 # The AGS layer is copied from this repository rather than fetched, so the image
 # is reproducible from the commit that built it.
 COPY --chown=frappe:frappe apps/ags_edusmart /home/frappe/frappe-bench/apps/ags_edusmart
 RUN ./env/bin/pip install --no-cache-dir -e apps/ags_edusmart \
- && echo "ags_edusmart" >> sites/apps.txt
+ # `bench get-app` writes sites/apps.txt WITHOUT a trailing newline, so a bare
+ # `echo >>` splices onto the last entry: `payments` + `ags_edusmart` becomes
+ # the single line `paymentsags_edusmart`, and the next command dies with
+ # `ModuleNotFoundError: No module named 'paymentsags_edusmart'` — which names
+ # a module nobody wrote and points at nothing. The leading \n guarantees the
+ # break; the sed removes the blank line it creates if one was already there.
+ && printf '\nags_edusmart\n' >> sites/apps.txt \
+ && sed -i '/^[[:space:]]*$/d' sites/apps.txt \
+ # Printed so the layer's log carries proof the file is one app per line.
+ && cat sites/apps.txt
 
 RUN bench build --production \
  && find . -name '__pycache__' -type d -prune -exec rm -rf {} + \
