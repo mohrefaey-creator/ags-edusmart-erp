@@ -1,3 +1,8 @@
+# The AGS app is its own repository (see apps.json and docs/versions.lock.md).
+# It lives here as a working checkout so scripts/bootstrap.sh can install it
+# without a network round-trip, but this repo does not track its contents.
+apps/
+
 __pycache__/
 *.py[cod]
 *.egg-info/
@@ -6,3 +11,7 @@ node_modules/
 *.log
 .DS_Store
 sites/
+brief.json
+
+# Stray Redis dump from a local run.
+dump.rdb

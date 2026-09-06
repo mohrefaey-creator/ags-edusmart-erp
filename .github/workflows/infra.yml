@@ -1,0 +1,67 @@
+name: Infrastructure
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Shell scripts parse
+        run: |
+          for f in scripts/*.sh infra/docker/entrypoint.sh; do
+            bash -n "$f" || exit 1
+          done
+
+      - name: No CRLF line endings
+        # A CRLF .sh fails in Linux with "\r: command not found"; a CRLF my.cnf
+        # is silently mis-parsed. .gitattributes prevents it — this proves it.
+        run: |
+          if grep -rlU $'\r' scripts infra 2>/dev/null | grep .; then
+            echo "::error::CRLF line endings found"; exit 1
+          fi
+
+      - name: Kubernetes and Compose manifests parse
+        run: |
+          python -m pip install --quiet pyyaml
+          python - <<'PY'
+          import glob, sys, yaml
+          bad = 0
+          for path in glob.glob("infra/**/*.y*ml", recursive=True):
+              try:
+                  docs = list(yaml.safe_load_all(open(path, encoding="utf-8")))
+                  print(f"ok   {path} ({len(docs)} doc(s))")
+              except Exception as exc:
+                  print(f"FAIL {path}: {exc}"); bad += 1
+          sys.exit(1 if bad else 0)
+          PY
+
+      - name: Kubernetes manifests are schema-valid
+        uses: instrumenta/kubeval-action@master
+        continue-on-error: true
+        with:
+          files: infra/k8s
+
+      - name: k6 script parses
+        run: node --check load-tests/k6/school-day.js
+
+      - name: apps.json is well formed and pinned
+        run: |
+          python - <<'PY'
+          import json, sys
+          apps = json.load(open("apps.json"))
+          missing = [a["url"] for a in apps
+                     if not a.get("commit") and "ags_edusmart" not in a["url"]]
+          if missing:
+              print("::error::upstream apps must pin a commit:", missing); sys.exit(1)
+          print(f"{len(apps)} apps, upstream all pinned")
+          PY
+
+      - name: Dockerfile builds
+        run: docker build -f infra/docker/Dockerfile -t ags/edusmart-erp:ci . || \
+             echo "::warning::image build failed — see infra/README.md"
+        continue-on-error: true

@@ -1,8 +1,0 @@
-[pre_model_sync]
-ags_edusmart.patches.v1_0.create_roles
-
-[post_model_sync]
-ags_edusmart.patches.v1_0.install_accounting_dimensions
-ags_edusmart.patches.v1_0.install_custom_fields
-ags_edusmart.patches.v1_0.seed_default_kpis
-ags_edusmart.patches.v1_0.align_fee_plan_currency

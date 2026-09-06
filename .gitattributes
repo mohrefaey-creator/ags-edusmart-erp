@@ -1,0 +1,20 @@
+# Normalise to LF in the repository.
+* text=auto eol=lf
+
+# These are executed inside Linux containers and WSL. A CRLF checkout makes
+# bash fail with "\r: command not found", and a CRLF my.cnf or nginx.conf is
+# silently mis-parsed — so they are never converted, on any platform.
+*.sh        text eol=lf
+*.cnf       text eol=lf
+*.conf      text eol=lf
+*.yml       text eol=lf
+*.yaml      text eol=lf
+Dockerfile  text eol=lf
+*.py        text eol=lf
+*.json      text eol=lf
+*.js        text eol=lf
+*.csv       text eol=lf
+
+*.png binary
+*.jpg binary
+*.pdf binary

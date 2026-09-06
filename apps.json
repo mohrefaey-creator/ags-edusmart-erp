@@ -1,0 +1,32 @@
+[
+  {
+    "url": "https://github.com/frappe/erpnext",
+    "branch": "version-16",
+    "commit": "0b50853985312bc64977f9324c55b5d8c1ab2e59",
+    "version": "16.34.1"
+  },
+  {
+    "url": "https://github.com/frappe/hrms",
+    "branch": "version-16",
+    "commit": "e1481b5cd038657d82357d91a2d81cc84c707016",
+    "version": "16.17.1"
+  },
+  {
+    "url": "https://github.com/frappe/education",
+    "branch": "version-16",
+    "commit": "93bc7075753369457919720690f80c6d2207b5f2",
+    "version": "16.0.1"
+  },
+  {
+    "url": "https://github.com/frappe/payments",
+    "branch": "version-16",
+    "commit": "cca07d9f9392e2ea0e521c5975151db9e4b6c321",
+    "version": "0.0.1"
+  },
+  {
+    "url": "https://github.com/mohrefaey-creator/ags_edusmart",
+    "branch": "main",
+    "commit": null,
+    "version": "1.0.0"
+  }
+]
