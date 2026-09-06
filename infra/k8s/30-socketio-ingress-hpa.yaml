@@ -1,0 +1,158 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ags-socketio
+  namespace: ags-erp
+  labels: { app: ags-erp, tier: socketio }
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: ags-erp, tier: socketio }
+  template:
+    metadata:
+      labels: { app: ags-erp, tier: socketio }
+    spec:
+      securityContext: { runAsNonRoot: true, runAsUser: 1000, fsGroup: 1000 }
+      containers:
+        - name: socketio
+          image: ags/edusmart-erp:latest
+          args: ["socketio"]
+          ports:
+            - { name: ws, containerPort: 9000 }
+          envFrom:
+            - configMapRef: { name: ags-erp-config }
+            - secretRef: { name: ags-erp-secrets }
+          resources:
+            requests: { cpu: "500m", memory: 1Gi }
+            limits:   { cpu: "2",    memory: 4Gi }
+          volumeMounts:
+            - { name: sites, mountPath: /home/frappe/frappe-bench/sites }
+      volumes:
+        - name: sites
+          persistentVolumeClaim: { claimName: ags-sites }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ags-socketio
+  namespace: ags-erp
+spec:
+  selector: { app: ags-erp, tier: socketio }
+  # Socket.IO's polling handshake must land on the same backend each time.
+  sessionAffinity: ClientIP
+  ports:
+    - { name: ws, port: 9000, targetPort: ws }
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ags-erp
+  namespace: ags-erp
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "60"
+    # Keepalive to the app tier: without it, 625 req/s means thousands of new
+    # sockets per second and a TIME_WAIT pileup on the ingress.
+    nginx.ingress.kubernetes.io/upstream-keepalive-connections: "64"
+    nginx.ingress.kubernetes.io/enable-brotli: "true"
+    # Generous enough for a parent loading several pages, harsh enough to blunt
+    # credential stuffing. The login path is limited far harder in
+    # infra/nginx/ags-erp.conf.
+    nginx.ingress.kubernetes.io/limit-rps: "50"
+    nginx.ingress.kubernetes.io/limit-connections: "50"
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts: ["erp.ags.edu.sa"]
+      secretName: ags-erp-tls
+  rules:
+    - host: erp.ags.edu.sa
+      http:
+        paths:
+          - path: /socket.io
+            pathType: Prefix
+            backend:
+              service:
+                name: ags-socketio
+                port: { number: 9000 }
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ags-web
+                port: { number: 8000 }
+---
+# Autoscaling for the 07:00-15:00 shape.
+#
+# CPU alone reacts too late for this workload: the attendance rush arrives in
+# about five minutes, and by the time average CPU crosses target the queue has
+# already built. The second metric scales on actual request rate per pod, which
+# leads CPU by roughly a minute.
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: ags-web
+  namespace: ags-erp
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: ags-web
+  minReplicas: 6
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          # 70% keeps queueing delay bounded (docs/capacity-model.md sec. 3).
+          averageUtilization: 70
+    - type: Pods
+      pods:
+        metric:
+          name: frappe_requests_per_second
+        target:
+          type: AverageValue
+          # ~9 req/s per worker x 17 workers x 70% target utilisation.
+          averageValue: "105"
+  behavior:
+    scaleUp:
+      # React fast: the morning burst is minutes, not hours.
+      stabilizationWindowSeconds: 30
+      policies:
+        - { type: Percent, value: 50, periodSeconds: 60 }
+        - { type: Pods,    value: 2,  periodSeconds: 60 }
+      selectPolicy: Max
+    scaleDown:
+      # Come down slowly. Scaling in during a lull at 09:55 and then straight
+      # back out at 10:00 for the next period change costs more than the pods.
+      stabilizationWindowSeconds: 900
+      policies:
+        - { type: Pods, value: 1, periodSeconds: 300 }
+---
+# Workers scale on queue depth, which is the only signal that reflects backlog.
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: ags-worker-long
+  namespace: ags-erp
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: ags-worker-long
+  minReplicas: 6
+  maxReplicas: 20
+  metrics:
+    - type: External
+      external:
+        metric:
+          name: rq_queue_depth
+          selector:
+            matchLabels: { queue: long }
+        target:
+          type: AverageValue
+          averageValue: "100"

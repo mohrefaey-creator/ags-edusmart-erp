@@ -35,18 +35,13 @@ fixtures = [
 # ---------------------------------------------------------------------------
 # Portal - school-friendly routes that hide ERP vocabulary (SKILL sec. 21/33)
 # ---------------------------------------------------------------------------
-website_route_rules = [
-	{"from_route": "/parent/<path:app_path>", "to_route": "parent"},
-	{"from_route": "/staff/<path:app_path>", "to_route": "staff"},
-]
+# No catch-all route rules: the pages under www/parent and www/staff are real
+# routes, and a wildcard to_route would shadow every one of them.
 
 portal_menu_items = [
-	{"title": "My Children", "route": "/parent/children", "role": "AGS Parent"},
+	{"title": "My Children", "route": "/parent", "role": "AGS Parent"},
 	{"title": "Fees & Payments", "route": "/parent/fees", "role": "AGS Parent"},
-	{"title": "Statement", "route": "/parent/statement", "role": "AGS Parent"},
-	{"title": "Request Supplies", "route": "/staff/request-supplies", "role": "Employee"},
-	{"title": "Request Leave", "route": "/staff/leave", "role": "Employee"},
-	{"title": "My Assets", "route": "/staff/assets", "role": "Employee"},
+	{"title": "My Workspace", "route": "/staff", "role": "Employee"},
 ]
 
 # ---------------------------------------------------------------------------

@@ -1,0 +1,104 @@
+# Frappe web tier: 6 replicas at the 625 req/s design peak, autoscaling to 10.
+# Derivation in docs/capacity-model.md sec. 3.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ags-web
+  namespace: ags-erp
+  labels: { app: ags-erp, tier: web }
+spec:
+  replicas: 6
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels: { app: ags-erp, tier: web }
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      # Never go below the provisioned six during a deploy: the peak window has
+      # no spare capacity to absorb a missing node.
+      maxUnavailable: 0
+      maxSurge: 2
+  template:
+    metadata:
+      labels: { app: ags-erp, tier: web }
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/api/method/frappe.utils.frappe_metrics"
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      # Spread across zones so losing one does not take the tier below capacity.
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels: { app: ags-erp, tier: web }
+      terminationGracePeriodSeconds: 90
+      containers:
+        - name: frappe
+          image: ags/edusmart-erp:latest
+          imagePullPolicy: IfNotPresent
+          args: ["web"]
+          ports:
+            - { name: http, containerPort: 8000 }
+          envFrom:
+            - configMapRef: { name: ags-erp-config }
+            - secretRef: { name: ags-erp-secrets }
+          resources:
+            requests: { cpu: "4", memory: 8Gi }
+            limits:   { cpu: "8", memory: 16Gi }
+          # Startup probe first: Frappe takes 60-90s to import its app tree, and
+          # without this a slow start is misread as a liveness failure and the
+          # pod is killed in a loop.
+          startupProbe:
+            httpGet: { path: /api/method/ping, port: http }
+            periodSeconds: 5
+            failureThreshold: 30
+          readinessProbe:
+            httpGet: { path: /api/method/ping, port: http }
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet: { path: /api/method/ping, port: http }
+            periodSeconds: 20
+            timeoutSeconds: 10
+            # Deliberately tolerant. A brief DB stall should not cause a
+            # cluster-wide restart cascade during the attendance rush.
+            failureThreshold: 6
+          lifecycle:
+            preStop:
+              # Let the endpoint removal propagate before gunicorn stops
+              # accepting; otherwise in-flight fee payments get a 502.
+              exec: { command: ["sh", "-c", "sleep 15"] }
+          volumeMounts:
+            - { name: sites, mountPath: /home/frappe/frappe-bench/sites }
+      volumes:
+        - name: sites
+          persistentVolumeClaim: { claimName: ags-sites }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ags-web
+  namespace: ags-erp
+spec:
+  selector: { app: ags-erp, tier: web }
+  ports:
+    - { name: http, port: 8000, targetPort: http }
+---
+# Keeps a voluntary disruption (node drain, cluster upgrade) from dropping the
+# tier below the capacity the model assumes.
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: ags-web
+  namespace: ags-erp
+spec:
+  minAvailable: 5
+  selector:
+    matchLabels: { app: ags-erp, tier: web }

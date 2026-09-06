@@ -1,0 +1,201 @@
+# Alerts for AGS EduSmart ERP.
+#
+# Every rule here corresponds to a failure this system was actually designed
+# against, and each carries the runbook that fixes it. Alerts that nobody can
+# act on get muted and then ignored, so there are deliberately few.
+groups:
+  - name: ags-slo
+    interval: 30s
+    rules:
+      # ---------------------------------------------------------- latency
+      - alert: AGSPortalLatencyBreach
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(frappe_request_duration_seconds_bucket{route=~"/api/.*"}[5m])) by (le)
+          ) > 0.5
+        for: 5m
+        labels: { severity: warning, tier: web }
+        annotations:
+          summary: "Portal p95 above the 500 ms SLO"
+          description: "p95 is {{ $value | humanizeDuration }}. During 07:00-15:00 treat as urgent."
+          runbook: docs/runbooks/slow-response.md
+
+      - alert: AGSErrorRateHigh
+        expr: |
+          sum(rate(frappe_requests_total{status=~"5.."}[5m]))
+            / sum(rate(frappe_requests_total[5m])) > 0.001
+        for: 3m
+        labels: { severity: critical, tier: web }
+        annotations:
+          summary: "5xx rate above 0.1%"
+          runbook: docs/runbooks/error-spike.md
+
+      # ------------------------------------------------------- saturation
+      - alert: AGSWebSaturated
+        expr: |
+          avg(rate(container_cpu_usage_seconds_total{pod=~"ags-web-.*"}[5m])) > 0.85
+        for: 5m
+        labels: { severity: warning, tier: web }
+        annotations:
+          summary: "Web tier above 85% CPU with the HPA already engaged"
+          description: >-
+            The capacity model targets 70%. Sustained 85% means either the
+            autoscaler has hit maxReplicas or a query has regressed.
+          runbook: docs/runbooks/capacity.md
+
+      - alert: AGSWebAtMaxReplicas
+        expr: |
+          kube_horizontalpodautoscaler_status_current_replicas{horizontalpodautoscaler="ags-web"}
+            >= kube_horizontalpodautoscaler_spec_max_replicas{horizontalpodautoscaler="ags-web"}
+        for: 10m
+        labels: { severity: warning, tier: web }
+        annotations:
+          summary: "Web autoscaler pinned at maxReplicas"
+          description: "There is no headroom left. Raise maxReplicas or find the regression."
+          runbook: docs/runbooks/capacity.md
+
+  - name: ags-background
+    interval: 30s
+    rules:
+      # The reminder ladder and invoicing runs live on the long queue. A growing
+      # backlog here means parents are not being told their fees are due.
+      - alert: AGSQueueBacklog
+        expr: rq_queue_depth{queue="long"} > 500
+        for: 15m
+        labels: { severity: warning, tier: worker }
+        annotations:
+          summary: "Long queue backlog above 500 jobs"
+          runbook: docs/runbooks/queue-backlog.md
+
+      - alert: AGSShortQueueBacklog
+        expr: rq_queue_depth{queue="short"} > 200
+        for: 5m
+        labels: { severity: critical, tier: worker }
+        annotations:
+          summary: "Short queue backing up"
+          description: >-
+            The short queue feeds user-facing actions. A backlog here is felt
+            immediately, unlike the long queue.
+          runbook: docs/runbooks/queue-backlog.md
+
+      # This is the one that silently loses money. redis-queue runs with
+      # maxmemory-policy noeviction precisely so that a full queue refuses
+      # writes loudly instead of discarding jobs - but if it fills, enqueues
+      # start failing and invoices stop being generated.
+      - alert: AGSRedisQueueNearCapacity
+        expr: |
+          redis_memory_used_bytes{instance=~".*redis-queue.*"}
+            / redis_memory_max_bytes{instance=~".*redis-queue.*"} > 0.80
+        for: 5m
+        labels: { severity: critical, tier: redis }
+        annotations:
+          summary: "redis-queue above 80% of maxmemory"
+          description: >-
+            With noeviction, hitting maxmemory means enqueues start failing:
+            no fee reminders, no ZATCA clearance, no generated invoices.
+          runbook: docs/runbooks/queue-backlog.md
+
+      # Two schedulers double every scheduled job - two overdue-fee SMS to every
+      # parent, two late-fee invoices. The StatefulSet should make this
+      # impossible; this alert is here because "impossible" has a way of not
+      # being.
+      - alert: AGSMultipleSchedulers
+        expr: count(up{job="ags-scheduler"} == 1) > 1
+        for: 1m
+        labels: { severity: critical, tier: scheduler }
+        annotations:
+          summary: "More than one scheduler is running"
+          description: "Every scheduled job is firing twice. Scale to exactly one now."
+          runbook: docs/runbooks/duplicate-scheduler.md
+
+      - alert: AGSSchedulerDown
+        expr: up{job="ags-scheduler"} == 0
+        for: 10m
+        labels: { severity: critical, tier: scheduler }
+        annotations:
+          summary: "Scheduler is not running"
+          description: >-
+            No reminders, no ageing refresh, no KPI snapshots, no late fees.
+            Damage accumulates quietly - dashboards keep serving stale numbers
+            rather than erroring.
+          runbook: docs/runbooks/scheduler-down.md
+
+      - alert: AGSNotificationOutboxStalled
+        expr: ags_notification_outbox_queued > 1000
+        for: 30m
+        labels: { severity: warning, tier: worker }
+        annotations:
+          summary: "Notification outbox not draining"
+          runbook: docs/runbooks/queue-backlog.md
+
+  - name: ags-data
+    interval: 30s
+    rules:
+      - alert: AGSReplicationLag
+        expr: mysql_slave_status_seconds_behind_master > 5
+        for: 5m
+        labels: { severity: warning, tier: database }
+        annotations:
+          summary: "Replica lag above the 5 s SLO"
+          description: >-
+            Reports and dashboards read the replica. Beyond a few seconds they
+            start disagreeing with the desk, which finance will notice first.
+          runbook: docs/runbooks/replication-lag.md
+
+      - alert: AGSBufferPoolThrashing
+        expr: |
+          rate(mysql_global_status_innodb_buffer_pool_reads[5m])
+            / rate(mysql_global_status_innodb_buffer_pool_read_requests[5m]) > 0.02
+        for: 10m
+        labels: { severity: warning, tier: database }
+        annotations:
+          summary: "InnoDB buffer pool miss rate above 2%"
+          description: >-
+            The working set no longer fits in the 44 GB pool. Revisit
+            docs/capacity-model.md sec. 5 before adding app nodes - more web
+            pods against a thrashing database makes it worse, not better.
+          runbook: docs/runbooks/capacity.md
+
+      - alert: AGSConnectionsNearLimit
+        expr: |
+          mysql_global_status_threads_connected
+            / mysql_global_variables_max_connections > 0.8
+        for: 5m
+        labels: { severity: critical, tier: database }
+        annotations:
+          summary: "MariaDB connections above 80% of max_connections"
+          runbook: docs/runbooks/capacity.md
+
+      - alert: AGSBackupMissing
+        expr: time() - ags_last_successful_backup_timestamp > 129600
+        labels: { severity: critical, tier: database }
+        annotations:
+          summary: "No successful backup in 36 hours"
+          runbook: docs/runbooks/backup-restore.md
+
+  - name: ags-business
+    interval: 5m
+    rules:
+      # Business-level alerts. These catch a system that is technically healthy
+      # while quietly doing the wrong thing.
+      - alert: AGSZatcaClearanceFailing
+        expr: increase(ags_zatca_failed_total[1h]) > 20
+        for: 10m
+        labels: { severity: critical, tier: compliance }
+        annotations:
+          summary: "ZATCA clearance failing repeatedly"
+          description: >-
+            Invoices are posting but not clearing. The archive keeps the hash
+            chain intact, so this is recoverable - but it is a compliance
+            exposure that grows every hour.
+          runbook: docs/runbooks/zatca-failures.md
+
+      - alert: AGSInvoiceGenerationStalled
+        expr: |
+          hour() >= 6 and hour() <= 12
+          and increase(ags_installments_invoiced_total[6h]) == 0
+          and ags_installments_due_today > 0
+        labels: { severity: warning, tier: finance }
+        annotations:
+          summary: "Installments are due today but none have been invoiced"
+          runbook: docs/runbooks/queue-backlog.md

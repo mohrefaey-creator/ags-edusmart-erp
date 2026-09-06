@@ -1,0 +1,77 @@
+# MariaDB primary for AGS EduSmart ERP.
+# Sized for the working set derived in docs/capacity-model.md sec. 5:
+# ~17 GB of hot data on a 16 vCPU / 64 GB node.
+
+[mysqld]
+# ---------------------------------------------------------------- character set
+# Frappe requires utf8mb4. Anything narrower silently truncates Arabic names and
+# breaks the ZATCA seller-name TLV, whose length is counted in bytes.
+character-set-client-handshake = FALSE
+character-set-server           = utf8mb4
+collation-server               = utf8mb4_unicode_ci
+
+# ------------------------------------------------------------------- InnoDB
+# 44G is ~70% of a 64 GB node and comfortably above the 17 GB working set, so
+# the hot pages stay resident and p95 does not collapse under concurrency.
+innodb_buffer_pool_size        = 44G
+innodb_buffer_pool_instances   = 8
+innodb_log_file_size           = 4G
+innodb_log_buffer_size         = 64M
+
+# flush_log_at_trx_commit = 1 with sync_binlog = 1 is the durable pair: no
+# committed fee payment is lost on power failure. This is a school's cash
+# ledger - the throughput cost is accepted deliberately.
+innodb_flush_log_at_trx_commit = 1
+sync_binlog                    = 1
+innodb_flush_method            = O_DIRECT
+innodb_file_per_table          = 1
+
+# NVMe: the default 200 IOPS assumption throttles page flushing badly.
+innodb_io_capacity             = 4000
+innodb_io_capacity_max         = 10000
+innodb_read_io_threads         = 8
+innodb_write_io_threads        = 8
+
+# Frappe holds row locks across document hooks; 120s is long enough for a heavy
+# submit and short enough that a stuck transaction is visible rather than fatal.
+innodb_lock_wait_timeout       = 120
+
+# ------------------------------------------------------------- connections
+# 6 web x 17 gunicorn + 20 background + tooling ~= 140 steady. 500 leaves room
+# for a rolling deploy where old and new pods briefly overlap.
+max_connections                = 500
+thread_cache_size              = 128
+max_allowed_packet             = 256M
+wait_timeout                   = 600
+interactive_timeout            = 600
+
+# ------------------------------------------------------------ query planning
+# Frappe generates wide joins over child tables; the default 62 is too small and
+# produces sudden plan regressions on large documents.
+optimizer_search_depth         = 0
+join_buffer_size               = 4M
+sort_buffer_size               = 4M
+tmp_table_size                 = 256M
+max_heap_table_size            = 256M
+
+# ------------------------------------------------------------- replication
+server-id                      = 1
+log_bin                        = /var/log/mysql/mariadb-bin
+binlog_format                  = ROW
+expire_logs_days               = 7
+binlog_row_image               = MINIMAL
+gtid_strict_mode               = ON
+
+# --------------------------------------------------------------- observability
+slow_query_log                 = 1
+slow_query_log_file            = /var/log/mysql/slow.log
+long_query_time                = 1
+log_slow_verbosity             = query_plan,explain
+performance_schema             = ON
+
+# ERPNext requires this off; several of its queries are not ONLY_FULL_GROUP_BY
+# clean and will error rather than degrade.
+sql_mode = STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION
+
+[mysql]
+default-character-set = utf8mb4

@@ -1,0 +1,71 @@
+# Scrape config for the AGS EduSmart ERP stack.
+global:
+  scrape_interval: 15s
+  evaluation_interval: 30s
+  external_labels:
+    cluster: ags-erp
+    environment: production
+
+rule_files:
+  - /etc/prometheus/alerts.yml
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ["alertmanager:9093"]
+
+scrape_configs:
+  # Frappe web pods. Discovered by annotation so the HPA can add pods without a
+  # config change.
+  - job_name: ags-web
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces: { names: [ags-erp] }
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_tier]
+        action: keep
+        regex: web
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: "true"
+      - source_labels: [__meta_kubernetes_pod_name]
+        target_label: pod
+
+  - job_name: ags-scheduler
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces: { names: [ags-erp] }
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_tier]
+        action: keep
+        regex: scheduler
+
+  - job_name: ags-workers
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces: { names: [ags-erp] }
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_tier]
+        action: keep
+        regex: worker
+      - source_labels: [__meta_kubernetes_pod_label_queue]
+        target_label: queue
+
+  - job_name: mysqld
+    static_configs:
+      - targets: ["mysqld-exporter:9104"]
+
+  - job_name: redis
+    static_configs:
+      - targets:
+          - "redis-exporter-cache:9121"
+          - "redis-exporter-queue:9121"
+          - "redis-exporter-socketio:9121"
+
+  - job_name: nginx
+    static_configs:
+      - targets: ["nginx-exporter:9113"]
+
+  - job_name: kube-state-metrics
+    static_configs:
+      - targets: ["kube-state-metrics:8080"]

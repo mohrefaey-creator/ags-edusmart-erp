@@ -1,0 +1,164 @@
+# Background workers, split by queue, plus the singleton scheduler.
+#
+# Queue separation (docs/capacity-model.md sec. 4) exists so that the nightly
+# reminder ladder over ~6,000 payers cannot starve the short queue that
+# user-facing actions depend on.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ags-worker-short
+  namespace: ags-erp
+  labels: { app: ags-erp, tier: worker, queue: short }
+spec:
+  replicas: 8
+  selector:
+    matchLabels: { app: ags-erp, tier: worker, queue: short }
+  template:
+    metadata:
+      labels: { app: ags-erp, tier: worker, queue: short }
+    spec:
+      securityContext: { runAsNonRoot: true, runAsUser: 1000, fsGroup: 1000 }
+      terminationGracePeriodSeconds: 120
+      containers:
+        - name: worker
+          image: ags/edusmart-erp:latest
+          args: ["worker"]
+          env:
+            - { name: WORKER_QUEUE, value: short }
+          envFrom:
+            - configMapRef: { name: ags-erp-config }
+            - secretRef: { name: ags-erp-secrets }
+          resources:
+            requests: { cpu: "500m", memory: 1Gi }
+            limits:   { cpu: "1",    memory: 2Gi }
+          volumeMounts:
+            - { name: sites, mountPath: /home/frappe/frappe-bench/sites }
+      volumes:
+        - name: sites
+          persistentVolumeClaim: { claimName: ags-sites }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ags-worker-default
+  namespace: ags-erp
+  labels: { app: ags-erp, tier: worker, queue: default }
+spec:
+  replicas: 6
+  selector:
+    matchLabels: { app: ags-erp, tier: worker, queue: default }
+  template:
+    metadata:
+      labels: { app: ags-erp, tier: worker, queue: default }
+    spec:
+      securityContext: { runAsNonRoot: true, runAsUser: 1000, fsGroup: 1000 }
+      terminationGracePeriodSeconds: 300
+      containers:
+        - name: worker
+          image: ags/edusmart-erp:latest
+          args: ["worker"]
+          env:
+            - { name: WORKER_QUEUE, value: default }
+          envFrom:
+            - configMapRef: { name: ags-erp-config }
+            - secretRef: { name: ags-erp-secrets }
+          resources:
+            requests: { cpu: "500m", memory: 1Gi }
+            limits:   { cpu: "1",    memory: 2Gi }
+          volumeMounts:
+            - { name: sites, mountPath: /home/frappe/frappe-bench/sites }
+      volumes:
+        - name: sites
+          persistentVolumeClaim: { claimName: ags-sites }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ags-worker-long
+  namespace: ags-erp
+  labels: { app: ags-erp, tier: worker, queue: long }
+spec:
+  replicas: 6
+  selector:
+    matchLabels: { app: ags-erp, tier: worker, queue: long }
+  template:
+    metadata:
+      labels: { app: ags-erp, tier: worker, queue: long }
+    spec:
+      securityContext: { runAsNonRoot: true, runAsUser: 1000, fsGroup: 1000 }
+      # Long jobs - the reminder ladder, KPI refresh, an invoicing run - get a
+      # full hour to finish on drain. They are idempotent, so a kill is safe,
+      # but finishing is cheaper than redoing.
+      terminationGracePeriodSeconds: 3600
+      containers:
+        - name: worker
+          image: ags/edusmart-erp:latest
+          args: ["worker"]
+          env:
+            - { name: WORKER_QUEUE, value: long }
+          envFrom:
+            - configMapRef: { name: ags-erp-config }
+            - secretRef: { name: ags-erp-secrets }
+          resources:
+            requests: { cpu: "1", memory: 2Gi }
+            limits:   { cpu: "2", memory: 4Gi }
+          volumeMounts:
+            - { name: sites, mountPath: /home/frappe/frappe-bench/sites }
+      volumes:
+        - name: sites
+          persistentVolumeClaim: { claimName: ags-sites }
+---
+# The scheduler. A StatefulSet with replicas: 1 and OrderedReady, NOT a
+# Deployment.
+#
+# A Deployment's rolling update briefly runs two pods. For a scheduler that
+# means every scheduled job fires twice during the overlap: two overdue-fee SMS
+# to every parent, two late-fee invoices, two KPI refresh passes. The
+# application's dedupe keys catch most of it, but the guard is a safety net,
+# not a licence to run two.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: ags-scheduler
+  namespace: ags-erp
+  labels: { app: ags-erp, tier: scheduler }
+spec:
+  serviceName: ags-scheduler
+  replicas: 1
+  podManagementPolicy: OrderedReady
+  selector:
+    matchLabels: { app: ags-erp, tier: scheduler }
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels: { app: ags-erp, tier: scheduler }
+    spec:
+      securityContext: { runAsNonRoot: true, runAsUser: 1000, fsGroup: 1000 }
+      terminationGracePeriodSeconds: 60
+      containers:
+        - name: scheduler
+          image: ags/edusmart-erp:latest
+          args: ["scheduler"]
+          envFrom:
+            - configMapRef: { name: ags-erp-config }
+            - secretRef: { name: ags-erp-secrets }
+          resources:
+            requests: { cpu: "500m", memory: 1Gi }
+            limits:   { cpu: "2",    memory: 4Gi }
+          volumeMounts:
+            - { name: sites, mountPath: /home/frappe/frappe-bench/sites }
+      volumes:
+        - name: sites
+          persistentVolumeClaim: { claimName: ags-sites }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ags-scheduler
+  namespace: ags-erp
+spec:
+  clusterIP: None
+  selector: { app: ags-erp, tier: scheduler }
+  ports:
+    - { name: none, port: 9999 }

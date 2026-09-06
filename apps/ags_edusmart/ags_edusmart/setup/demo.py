@@ -564,3 +564,56 @@ def run_journey() -> dict:
 			for r in plan.installments
 		],
 	}
+
+
+# ------------------------------------------------------------ portal logins
+# Dev/demo only. These credentials are deliberately obvious non-secrets; the
+# function refuses to run on a site that is not flagged as a development site,
+# so it cannot create a weak login in production by accident.
+DEMO_PASSWORD = "demo-not-a-real-credential"
+
+PORTAL_USERS = [
+	("mohamed.ahmed@example.com", "Mohamed", "Ahmed", "AGS Parent"),
+]
+
+
+def create_portal_users() -> list[str]:
+	if not frappe.conf.get("developer_mode") and not frappe.conf.get("allow_tests"):
+		frappe.throw(
+			"create_portal_users is for development sites only. "
+			"Enable developer_mode or allow_tests first."
+		)
+
+	created = []
+	for email, first, last, role in PORTAL_USERS:
+		if not frappe.db.exists("User", email):
+			user = frappe.get_doc({
+				"doctype": "User",
+				"email": email,
+				"first_name": first,
+				"last_name": last,
+				"send_welcome_email": 0,
+				"user_type": "Website User",
+				"new_password": DEMO_PASSWORD,
+			})
+			user.flags.ignore_permissions = True
+			user.insert()
+			created.append(email)
+
+		user = frappe.get_doc("User", email)
+		if role not in [r.role for r in user.roles]:
+			user.append("roles", {"role": role})
+			user.flags.ignore_permissions = True
+			user.save()
+
+	# Link the guardian to its portal login, which is how the parent portal
+	# resolves "my payer account" without trusting anything from the request.
+	guardian = frappe.db.get_value("Guardian", {"guardian_name": "Mohamed Ahmed"}, "name")
+	if guardian:
+		frappe.db.set_value(
+			"Guardian", guardian, "user", "mohamed.ahmed@example.com",
+			update_modified=False,
+		)
+
+	frappe.db.commit()
+	return created

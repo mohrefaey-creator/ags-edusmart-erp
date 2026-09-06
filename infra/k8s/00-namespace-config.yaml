@@ -1,0 +1,63 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ags-erp
+  labels:
+    name: ags-erp
+---
+# Non-secret runtime configuration. Anything here is visible to anyone who can
+# read the namespace, so credentials live in the Secret below, never here.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ags-erp-config
+  namespace: ags-erp
+data:
+  SITE_NAME: "erp.ags.edu.sa"
+  DB_HOST: "mariadb-primary.ags-erp.svc.cluster.local"
+  DB_PORT: "3306"
+  # Reports and dashboards read from the replica; writes and read-after-write
+  # flows must not (replication is asynchronous, so a parent who has just paid
+  # could still be shown a balance).
+  DB_REPLICA_HOST: "mariadb-replica.ags-erp.svc.cluster.local"
+  REDIS_CACHE_HOST: "redis-cache.ags-erp.svc.cluster.local"
+  REDIS_QUEUE_HOST: "redis-queue.ags-erp.svc.cluster.local"
+  REDIS_SOCKETIO_HOST: "redis-socketio.ags-erp.svc.cluster.local"
+  # 2 x cores + 1 on an 8 vCPU node (docs/capacity-model.md sec. 3).
+  GUNICORN_WORKERS: "17"
+---
+# Template only. Do not commit real values: generate with
+#   kubectl -n ags-erp create secret generic ags-erp-secrets \
+#     --from-literal=DB_ROOT_PASSWORD=... --from-literal=ADMIN_PASSWORD=...
+# or supply them from External Secrets / Vault.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ags-erp-secrets
+  namespace: ags-erp
+type: Opaque
+stringData:
+  DB_ROOT_PASSWORD: "REPLACE_ME"
+  ADMIN_PASSWORD: "REPLACE_ME"
+  ENCRYPTION_KEY: "REPLACE_ME"
+  # ZATCA production credentials. These sign invoices that go to the tax
+  # authority; treat a leak as a compliance incident, not just a rotation.
+  ZATCA_CERTIFICATE: "REPLACE_ME"
+  ZATCA_SECRET: "REPLACE_ME"
+---
+# The site directory is shared: web pods and workers both read site_config.json
+# and both write to public/private files (attachments, generated PDFs, backups).
+# ReadWriteMany is therefore a hard requirement - EFS, Azure Files, CephFS or
+# similar. A ReadWriteOnce volume will appear to work with one replica and then
+# fail to schedule the second.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ags-sites
+  namespace: ags-erp
+spec:
+  accessModes: ["ReadWriteMany"]
+  resources:
+    requests:
+      storage: 200Gi
+  storageClassName: ags-shared-nfs

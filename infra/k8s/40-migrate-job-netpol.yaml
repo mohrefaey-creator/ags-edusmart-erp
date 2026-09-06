@@ -1,0 +1,130 @@
+# Schema migration.
+#
+# Run as its own Job BEFORE rolling the web tier, never from an app container
+# and never as an initContainer on a multi-replica Deployment: six pods each
+# running `bench migrate` against one site concurrently corrupts the schema.
+#
+#   kubectl -n ags-erp delete job ags-migrate --ignore-not-found
+#   kubectl -n ags-erp apply -f 40-migrate-job-netpol.yaml
+#   kubectl -n ags-erp wait --for=condition=complete job/ags-migrate --timeout=30m
+#   kubectl -n ags-erp set image deployment/ags-web frappe=ags/edusmart-erp:<tag>
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ags-migrate
+  namespace: ags-erp
+spec:
+  backoffLimit: 0          # a failed migration must be inspected, not retried blindly
+  ttlSecondsAfterFinished: 86400
+  template:
+    metadata:
+      labels: { app: ags-erp, tier: migrate }
+    spec:
+      restartPolicy: Never
+      securityContext: { runAsNonRoot: true, runAsUser: 1000, fsGroup: 1000 }
+      containers:
+        - name: migrate
+          image: ags/edusmart-erp:latest
+          args: ["migrate"]
+          envFrom:
+            - configMapRef: { name: ags-erp-config }
+            - secretRef: { name: ags-erp-secrets }
+          resources:
+            requests: { cpu: "1", memory: 2Gi }
+            limits:   { cpu: "4", memory: 8Gi }
+          volumeMounts:
+            - { name: sites, mountPath: /home/frappe/frappe-bench/sites }
+      volumes:
+        - name: sites
+          persistentVolumeClaim: { claimName: ags-sites }
+---
+# Nightly database backup. Frappe's own backup command, so the artefact is
+# restorable with `bench restore` rather than a bespoke script.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: ags-backup
+  namespace: ags-erp
+spec:
+  # 01:15 Riyadh: well clear of the 07:00 peak and after the nightly
+  # reminder/ageing passes have settled.
+  schedule: "15 22 * * *"   # UTC
+  timeZone: "Etc/UTC"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          restartPolicy: OnFailure
+          securityContext: { runAsNonRoot: true, runAsUser: 1000, fsGroup: 1000 }
+          containers:
+            - name: backup
+              image: ags/edusmart-erp:latest
+              args: ["bench", "--site", "erp.ags.edu.sa", "backup", "--with-files"]
+              envFrom:
+                - configMapRef: { name: ags-erp-config }
+                - secretRef: { name: ags-erp-secrets }
+              resources:
+                requests: { cpu: "500m", memory: 1Gi }
+                limits:   { cpu: "2",    memory: 4Gi }
+              volumeMounts:
+                - { name: sites, mountPath: /home/frappe/frappe-bench/sites }
+          volumes:
+            - name: sites
+              persistentVolumeClaim: { claimName: ags-sites }
+---
+# Default deny, then allow only what the topology actually needs. A school ERP
+# holds student medical flags, guardian national IDs and payroll; lateral
+# movement from a compromised pod is the risk this closes.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: ags-erp
+spec:
+  podSelector: {}
+  policyTypes: [Ingress]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-web-from-ingress
+  namespace: ags-erp
+spec:
+  podSelector:
+    matchLabels: { app: ags-erp, tier: web }
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels: { name: ingress-nginx }
+      ports:
+        - { protocol: TCP, port: 8000 }
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-data-from-app
+  namespace: ags-erp
+spec:
+  # Only the application tiers may reach MariaDB and Redis. Nothing outside the
+  # namespace can, and the ingress controller cannot either.
+  podSelector:
+    matchExpressions:
+      - { key: tier, operator: In, values: [database, redis] }
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector:
+            matchExpressions:
+              - key: tier
+                operator: In
+                values: [web, worker, scheduler, socketio, migrate]
+      ports:
+        - { protocol: TCP, port: 3306 }
+        - { protocol: TCP, port: 11000 }
+        - { protocol: TCP, port: 12000 }
+        - { protocol: TCP, port: 13000 }

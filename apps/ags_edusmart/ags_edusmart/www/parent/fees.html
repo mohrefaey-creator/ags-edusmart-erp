@@ -1,0 +1,98 @@
+{% extends "templates/web.html" %}
+{% block title %}{{ _("Fees & Payments") }}{% endblock %}
+
+{% block page_content %}
+<div class="ags-page">
+	<h1>{{ _("Fees & Payments") }}</h1>
+
+	{% if error %}
+		<div class="ags-card"><p>{{ error }}</p></div>
+	{% else %}
+
+	<div class="ags-grid cols-2">
+		<div class="ags-card ags-stat">
+			<div class="ags-stat__label">{{ _("Outstanding") }}</div>
+			<div class="ags-stat__value">{{ frappe.format_value(summary.total_outstanding, {"fieldtype": "Currency"}) }}</div>
+		</div>
+		<div class="ags-card ags-stat {% if summary.total_overdue %}ags-stat--danger{% endif %}">
+			<div class="ags-stat__label">{{ _("Overdue") }}</div>
+			<div class="ags-stat__value">{{ frappe.format_value(summary.total_overdue, {"fieldtype": "Currency"}) }}</div>
+		</div>
+	</div>
+
+	<div class="ags-card">
+		<h3>{{ _("Upcoming Installments") }}</h3>
+		<div class="ags-scroll-x">
+			<table class="ags-table">
+				<thead>
+					<tr>
+						<th>{{ _("Student") }}</th>
+						<th>{{ _("Installment") }}</th>
+						<th>{{ _("Due Date") }}</th>
+						<th class="num">{{ _("Amount") }}</th>
+						<th class="num">{{ _("Paid") }}</th>
+						<th>{{ _("Status") }}</th>
+					</tr>
+				</thead>
+				<tbody>
+				{% for row in installments %}
+					<tr>
+						<td>{{ row.student_name }}</td>
+						<td>{{ row.label or row.installment_no }}</td>
+						<td>{{ frappe.format_value(row.due_date, {"fieldtype": "Date"}) }}</td>
+						<td class="num">{{ frappe.format_value(row.amount, {"fieldtype": "Currency"}) }}</td>
+						<td class="num">{{ frappe.format_value(row.paid_amount, {"fieldtype": "Currency"}) }}</td>
+						<td>
+							{% if row.status == "Paid" %}
+								<span class="ags-badge ags-badge--paid">{{ _("Paid") }}</span>
+							{% elif row.status == "Overdue" %}
+								<span class="ags-badge ags-badge--overdue">{{ _("Overdue") }}</span>
+							{% else %}
+								<span class="ags-badge ags-badge--due">{{ _(row.status) }}</span>
+							{% endif %}
+						</td>
+					</tr>
+				{% else %}
+					<tr><td colspan="6">{{ _("No installments scheduled.") }}</td></tr>
+				{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	</div>
+
+	<div class="ags-card">
+		<h3>{{ _("Statement") }}</h3>
+		<div class="ags-scroll-x">
+			<table class="ags-table">
+				<thead>
+					<tr>
+						<th>{{ _("Student") }}</th>
+						<th>{{ _("Invoice") }}</th>
+						<th>{{ _("Date") }}</th>
+						<th class="num">{{ _("Amount") }}</th>
+						<th class="num">{{ _("Paid") }}</th>
+						<th class="num">{{ _("Balance") }}</th>
+					</tr>
+				</thead>
+				<tbody>
+				{% for inv in statement.invoices %}
+					<tr>
+						<td>{{ inv.student_name or "" }}</td>
+						{# Invoice numbers are identifiers: isolate so RTL cannot reorder them. #}
+						<td><span class="code">{{ inv.name }}</span></td>
+						<td>{{ frappe.format_value(inv.posting_date, {"fieldtype": "Date"}) }}</td>
+						<td class="num">{{ frappe.format_value(inv.grand_total, {"fieldtype": "Currency"}) }}</td>
+						<td class="num">{{ frappe.format_value(inv.paid_amount, {"fieldtype": "Currency"}) }}</td>
+						<td class="num">{{ frappe.format_value(inv.outstanding_amount, {"fieldtype": "Currency"}) }}</td>
+					</tr>
+				{% else %}
+					<tr><td colspan="6">{{ _("No invoices yet.") }}</td></tr>
+				{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	</div>
+
+	{% endif %}
+</div>
+{% endblock %}

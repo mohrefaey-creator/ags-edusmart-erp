@@ -1,0 +1,201 @@
+# Production-shaped stack for a single host or a small swarm.
+#
+# This is the same topology as infra/k8s, expressed for teams that are not
+# running Kubernetes. It is NOT the dev stack: replica counts, resource limits
+# and the scheduler constraint are all real.
+#
+#   docker compose --env-file ../../.env up -d
+#
+# Scale the web tier with the capacity model in mind (docs/capacity-model.md):
+#   docker compose up -d --scale web=6
+
+x-app: &app
+  image: ags/edusmart-erp:${IMAGE_TAG:-latest}
+  build:
+    context: ../..
+    dockerfile: infra/docker/Dockerfile
+  restart: unless-stopped
+  environment: &app-env
+    SITE_NAME: ${SITE_NAME:-erp.ags.edu.sa}
+    DB_HOST: mariadb
+    DB_PORT: "3306"
+    REDIS_CACHE_HOST: redis-cache
+    REDIS_QUEUE_HOST: redis-queue
+    REDIS_SOCKETIO_HOST: redis-socketio
+  depends_on:
+    mariadb:
+      condition: service_healthy
+    redis-cache:
+      condition: service_started
+    redis-queue:
+      condition: service_started
+  volumes:
+    - sites:/home/frappe/frappe-bench/sites
+    - logs:/home/frappe/frappe-bench/logs
+  networks: [ags]
+
+services:
+  # -------------------------------------------------------------------- edge
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    ports: ["80:80", "443:443"]
+    volumes:
+      - ../nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../nginx/ags-erp.conf:/etc/nginx/conf.d/ags-erp.conf:ro
+      - ../nginx/snippets:/etc/nginx/snippets:ro
+      - certs:/etc/letsencrypt:ro
+      - nginx-cache:/var/cache/nginx
+    depends_on: [web]
+    networks: [ags]
+
+  # --------------------------------------------------------------- app tier
+  web:
+    <<: *app
+    command: ["web"]
+    environment:
+      <<: *app-env
+      GUNICORN_WORKERS: "17"
+    deploy:
+      replicas: 6
+      resources:
+        limits: { cpus: "8", memory: 16G }
+        reservations: { cpus: "4", memory: 8G }
+
+  socketio:
+    <<: *app
+    command: ["socketio"]
+    deploy:
+      replicas: 2
+      resources:
+        limits: { cpus: "2", memory: 4G }
+
+  # ---------------------------------------------------------------- workers
+  # Split by queue so a nightly reminder run cannot starve the short queue that
+  # user-facing actions depend on (docs/capacity-model.md sec. 4).
+  worker-short:
+    <<: *app
+    command: ["worker"]
+    environment:
+      <<: *app-env
+      WORKER_QUEUE: short
+    deploy:
+      replicas: 8
+      resources:
+        limits: { cpus: "1", memory: 2G }
+
+  worker-default:
+    <<: *app
+    command: ["worker"]
+    environment:
+      <<: *app-env
+      WORKER_QUEUE: default
+    deploy:
+      replicas: 6
+      resources:
+        limits: { cpus: "1", memory: 2G }
+
+  worker-long:
+    <<: *app
+    command: ["worker"]
+    environment:
+      <<: *app-env
+      WORKER_QUEUE: long
+    deploy:
+      replicas: 6
+      resources:
+        limits: { cpus: "2", memory: 4G }
+
+  # EXACTLY ONE. Two schedulers fire every scheduled job twice, which means two
+  # overdue-fee SMS to every parent and two late-fee invoices.
+  scheduler:
+    <<: *app
+    command: ["scheduler"]
+    deploy:
+      replicas: 1
+      resources:
+        limits: { cpus: "2", memory: 4G }
+
+  # ------------------------------------------------------------------- data
+  mariadb:
+    image: mariadb:11.8
+    restart: unless-stopped
+    command: ["--defaults-extra-file=/etc/mysql/conf.d/primary.cnf"]
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?set DB_ROOT_PASSWORD in .env}
+    volumes:
+      - ../mariadb/primary.cnf:/etc/mysql/conf.d/primary.cnf:ro
+      - db-data:/var/lib/mysql
+      - db-logs:/var/log/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
+    deploy:
+      resources:
+        limits: { cpus: "16", memory: 64G }
+    networks: [ags]
+
+  redis-cache:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    volumes:
+      - ../redis/redis-cache.conf:/usr/local/etc/redis/redis.conf:ro
+    networks: [ags]
+
+  redis-queue:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    volumes:
+      - ../redis/redis-queue.conf:/usr/local/etc/redis/redis.conf:ro
+      # Queues are durable state: the AOF is what lets a nightly reminder run
+      # resume after a crash instead of skipping 6,000 parents.
+      - redis-queue-data:/data
+    networks: [ags]
+
+  redis-socketio:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    volumes:
+      - ../redis/redis-socketio.conf:/usr/local/etc/redis/redis.conf:ro
+    networks: [ags]
+
+  # ---------------------------------------------------------- observability
+  prometheus:
+    image: prom/prometheus:latest
+    restart: unless-stopped
+    volumes:
+      - ../observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ../observability/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - prom-data:/prometheus
+    networks: [ags]
+
+  grafana:
+    image: grafana/grafana:latest
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:?set GRAFANA_PASSWORD in .env}
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ../observability/grafana-dashboard.json:/etc/grafana/dashboard.json:ro
+    networks: [ags]
+
+networks:
+  ags:
+    driver: bridge
+
+volumes:
+  sites:
+  logs:
+  db-data:
+  db-logs:
+  redis-queue-data:
+  nginx-cache:
+  certs:
+  prom-data:
+  grafana-data:
