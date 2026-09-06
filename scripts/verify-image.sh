@@ -40,7 +40,7 @@ fi
 # ---------------------------------------------------------------------- apps
 apps=$(run 'ls apps' | tr -d '\r' | tr '\n' ' ')
 missing=""
-for app in frappe erpnext hrms education ags_edusmart; do
+for app in frappe erpnext payments hrms education ags_edusmart; do
   case " ${apps} " in *" ${app} "*) ;; *) missing="${missing} ${app}" ;; esac
 done
 if [ -z "${missing}" ]; then
@@ -49,9 +49,28 @@ else
   bad "missing app(s):${missing}"
 fi
 
+# sites/apps.txt is checked separately from `ls apps`, because the two can
+# disagree in a way that builds cleanly and then fails at the first `frappe.init`.
+# `bench get-app` writes the file without a trailing newline, so appending an app
+# to it splices onto the last entry: `payments` + `ags_edusmart` became the single
+# token `paymentsags_edusmart`, and the asset build died importing a module by
+# that name. Every entry must be a directory under apps/.
+appstxt=$(run 'cat sites/apps.txt' | tr -d '\r')
+bogus=""
+for entry in ${appstxt}; do
+  case " ${apps} " in *" ${entry} "*) ;; *) bogus="${bogus} ${entry}" ;; esac
+done
+if [ -n "${bogus}" ]; then
+  bad "sites/apps.txt names app(s) that do not exist:${bogus} (spliced line?)"
+elif [ -z "${appstxt}" ]; then
+  bad "sites/apps.txt is empty"
+else
+  ok "sites/apps.txt is one app per line, all resolvable"
+fi
+
 # An app can be on disk and still not importable — a failed editable install
 # looks exactly like a healthy one from `ls`.
-imports=$(run 'env/bin/python -c "import frappe, erpnext, hrms, education, ags_edusmart; print(ags_edusmart.__version__)"')
+imports=$(run 'env/bin/python -c "import frappe, erpnext, payments, hrms, education, ags_edusmart; print(ags_edusmart.__version__)"')
 case "${imports}" in
   *Error*|*Traceback*) bad "apps do not import: $(printf '%s' "${imports}" | tail -2)" ;;
   "") bad "import check produced no output" ;;
