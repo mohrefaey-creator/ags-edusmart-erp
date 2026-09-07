@@ -15,3 +15,8 @@ brief.json
 
 # Stray Redis dump from a local run.
 dump.rdb
+
+# k6 writes these next to the profile on every run (handleSummary). The results
+# worth keeping are the curated load-tests/results-*.txt, not the raw dumps.
+load-tests/k6/summary.json
+load-tests/k6/calibration.json
