@@ -129,6 +129,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         # mariadb-client: bench needs it for backup/restore
         mariadb-client \
         libmariadb3 \
+        # git is not optional here, despite nothing in the runtime cloning
+        # anything. `bench` imports GitPython at module level, and GitPython
+        # raises ImportError("Bad git executable") on import when the binary is
+        # absent — so every role that shells out to bench (all three worker
+        # queues, the scheduler, the migrate Job, and the `bench` escape hatch
+        # the runbooks use for backup and restore) dies before running a line of
+        # its own code. Only the web role, which execs gunicorn directly,
+        # survives without it.
+        git \
         # wkhtmltopdf renders every fee invoice and payslip
         wkhtmltopdf xfonts-75dpi xfonts-base \
         # Arabic shaping in generated PDFs; without these, invoices print boxes
