@@ -184,10 +184,19 @@ export const options = {
 // iteration after the first arrives as Guest. That combination failed 93% of a
 // full run with "Login to access", which looks exactly like a permissions bug
 // in the application and is entirely a bug in this file.
+// Keyed by the account that created it. k6 recycles a VU between scenarios, and
+// this module state survives that, so a VU that finished the attendance rush is
+// reused by the parent surge still holding its *teacher* session — and then
+// reads parent endpoints as a teacher. It showed up as 19% of a full run
+// failing on exactly one call, AGS Payer Account: the one endpoint a parent may
+// read and a teacher may not. Every other call in the parent journey happens to
+// be readable by both roles, so the profile was quietly measuring the wrong
+// user's permissions almost everywhere and only failed where the roles differ.
 let session = null;
+let sessionUser = null;
 
 function login(user) {
-  if (session) return true;
+  if (session && sessionUser === user.usr) return true;
 
   const res = http.post(
     `${BASE}/api/method/login`,
@@ -203,9 +212,16 @@ function login(user) {
     // comment is about.
     session = sid && sid.length ? sid[0].value : null;
     if (!session) {
+      sessionUser = null;
       loginFailures.add(true);
       return false;
     }
+    sessionUser = user.usr;
+  } else {
+    // Do not keep a stale session behind a failed login: the next iteration
+    // would reuse another user's credentials rather than retrying.
+    session = null;
+    sessionUser = null;
   }
   return ok;
 }
