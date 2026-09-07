@@ -33,7 +33,7 @@ case "${1:-web}" in
   web)
     WORKERS=${GUNICORN_WORKERS:-17}
     log "starting gunicorn with ${WORKERS} workers"
-    exec env/bin/gunicorn \
+    exec gunicorn \
       --bind 0.0.0.0:8000 \
       --workers "${WORKERS}" \
       --threads 1 \
@@ -52,14 +52,14 @@ case "${1:-web}" in
   worker)
     QUEUE=${WORKER_QUEUE:-default}
     log "starting worker on queue ${QUEUE}"
-    exec env/bin/bench worker --queue "${QUEUE}"
+    exec bench worker --queue "${QUEUE}"
     ;;
 
   scheduler)
     # Guard rail, not a substitute for replicas: 1. Two schedulers double every
     # scheduled job, which for the reminder ladder means two SMS per parent.
     log "starting scheduler (this must be the ONLY scheduler in the cluster)"
-    exec env/bin/bench schedule
+    exec bench schedule
     ;;
 
   socketio)
@@ -70,12 +70,12 @@ case "${1:-web}" in
     # Run as a Job before rolling the web tier, never from an app container:
     # concurrent migrations on one site corrupt the schema.
     log "migrating ${SITE}"
-    exec env/bin/bench --site "${SITE}" migrate
+    exec bench --site "${SITE}" migrate
     ;;
 
   bench)
     shift
-    exec env/bin/bench "$@"
+    exec bench "$@"
     ;;
 
   *)

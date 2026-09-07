@@ -107,6 +107,31 @@ else
   bad "no Noto fonts — Arabic invoices will print boxes"
 fi
 
+# ---------------------------------------------------------------- roles
+# Every role the entrypoint dispatches, not just the one that happens to work.
+#
+# The entrypoint hardcoded env/bin/bench, which does not exist — bench is
+# installed with `pip install --user` and lives in ~/.local/bin, while gunicorn
+# is a frappe dependency in the bench virtualenv. The web role worked and the
+# other four did not, and nothing here noticed because these checks only ever
+# looked at imports and assets. A container image whose entrypoint cannot find
+# its own binary is not a working image.
+for cmd in bench gunicorn node; do
+  found=$(run "command -v ${cmd} || true")
+  case "${found}" in
+    */"${cmd}") ok "${cmd} resolves on PATH (${found})" ;;
+    *) bad "${cmd} is not on PATH — the roles that use it cannot start" ;;
+  esac
+done
+
+# The dispatch itself: `bench --version` exercises the same lookup the worker,
+# scheduler and migrate roles make, without needing a database.
+bench_version=$(run 'bench --version 2>&1 | head -1')
+case "${bench_version}" in
+  *[0-9]*) ok "bench runs (${bench_version})" ;;
+  *) bad "bench does not run: ${bench_version}" ;;
+esac
+
 # ----------------------------------------------------------------- entrypoint
 entry=$(docker run --rm --entrypoint /bin/bash "${TAG}" -c 'head -1 /usr/local/bin/entrypoint.sh' 2>&1)
 case "${entry}" in

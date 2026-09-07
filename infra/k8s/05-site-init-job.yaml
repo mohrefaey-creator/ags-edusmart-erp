@@ -1,0 +1,116 @@
+# First-deploy site creation. Run ONCE, before the migrate Job.
+#
+#   kubectl -n ags-erp delete job ags-site-init --ignore-not-found
+#   kubectl -n ags-erp apply -f 05-site-init-job.yaml
+#   kubectl -n ags-erp wait --for=condition=complete job/ags-site-init --timeout=30m
+#
+# This exists because nothing else creates the site. The image ships a bench
+# with no sites in it, `40-migrate-job-netpol.yaml` runs `bench migrate` against
+# a site it assumes already exists, and every workload's entrypoint expects one.
+# On a first deploy the whole stack therefore comes up and fails, each pod
+# reporting a different symptom of the same missing thing. The step was
+# understood but never written down, which is the same as not existing.
+#
+# It is idempotent: if the site is already present it exits 0 without touching
+# it, so leaving it in a GitOps sync loop is safe.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ags-site-init
+  namespace: ags-erp
+spec:
+  backoffLimit: 1
+  ttlSecondsAfterFinished: 86400
+  template:
+    metadata:
+      labels: { app: ags-erp, tier: site-init }
+    spec:
+      restartPolicy: Never
+      securityContext: { runAsNonRoot: true, runAsUser: 1000, fsGroup: 1000 }
+      initContainers:
+        # Seed the empty volume from the image.
+        #
+        # `sites/` is a PersistentVolumeClaim in every workload here, and it is
+        # mounted over a directory the image is not empty at: the build leaves
+        # sites/apps.txt (the list of installed apps, without which frappe.init
+        # raises before any of our code runs) and sites/assets (the bundles
+        # `bench build --production` just spent ten minutes producing). An empty
+        # PVC hides both, so on a first deploy every pod fails on a file that is
+        # demonstrably present in the image.
+        #
+        # The volume is deliberately mounted somewhere else here — mounting it
+        # at sites/ would hide the very files being copied.
+        - name: seed-sites
+          image: ags/edusmart-erp:latest
+          imagePullPolicy: IfNotPresent
+          command:
+            - bash
+            - -c
+            - |
+              set -euo pipefail
+              src=/home/frappe/frappe-bench/sites
+              dst=/mnt/sites
+              # -n: never clobber. A redeploy must not overwrite the live
+              # site_config.json, and assets are content-hashed so existing
+              # files are already correct.
+              cp -an "${src}/." "${dst}/" 2>/dev/null || true
+              echo "seeded: $(ls -1 "${dst}" | tr '\n' ' ')"
+          volumeMounts:
+            - { name: sites, mountPath: /mnt/sites }
+          resources:
+            requests: { cpu: "50m", memory: 128Mi }
+            limits:   { cpu: "500m", memory: 512Mi }
+      containers:
+        - name: site-init
+          image: ags/edusmart-erp:latest
+          imagePullPolicy: IfNotPresent
+          # Falls through the entrypoint's default case to `exec "$@"`, so the
+          # entrypoint's wait_for still gates on MariaDB and Redis first.
+          command:
+            - bash
+            - -c
+            - |
+              set -euo pipefail
+              cd /home/frappe/frappe-bench
+              SITE="${SITE_NAME}"
+
+              # bench init ran with --skip-redis-config-generation, so
+              # common_site_config.json carries no connection details at all.
+              # These live on the shared volume, so every pod reads the same
+              # ones. Written before new-site, which needs the db host.
+              bench set-config -g db_host "${DB_HOST}"
+              bench set-config -g db_port "${DB_PORT}"
+              bench set-config -g redis_cache "redis://${REDIS_CACHE_HOST}:13000"
+              bench set-config -g redis_queue "redis://${REDIS_QUEUE_HOST}:11000"
+              bench set-config -g redis_socketio "redis://${REDIS_SOCKETIO_HOST}:13000"
+
+              if [ -f "sites/${SITE}/site_config.json" ]; then
+                echo "[site-init] ${SITE} already exists — nothing to do"
+                exit 0
+              fi
+
+              echo "[site-init] creating ${SITE}"
+              # --no-mariadb-socket: the database is over TCP on another host,
+              # so bench must not try to grant on 'localhost'.
+              bench new-site "${SITE}" \
+                --db-root-password "${DB_ROOT_PASSWORD}" \
+                --admin-password "${ADMIN_PASSWORD}" \
+                --no-mariadb-socket \
+                --install-app erpnext \
+                --install-app payments \
+                --install-app hrms \
+                --install-app education \
+                --install-app ags_edusmart
+
+              echo "[site-init] done"
+          envFrom:
+            - configMapRef: { name: ags-erp-config }
+            - secretRef: { name: ags-erp-secrets }
+          resources:
+            requests: { cpu: "500m", memory: 1Gi }
+            limits:   { cpu: "4",    memory: 4Gi }
+          volumeMounts:
+            - { name: sites, mountPath: /home/frappe/frappe-bench/sites }
+      volumes:
+        - name: sites
+          persistentVolumeClaim: { claimName: ags-sites }

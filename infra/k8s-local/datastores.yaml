@@ -1,0 +1,174 @@
+# MariaDB and the three Redis instances, for the local cluster only.
+#
+# infra/k8s/ deliberately does not define these. The ConfigMap points at
+# mariadb-primary.ags-erp.svc.cluster.local and redis-{cache,queue,socketio},
+# and in the deployed topology those are a managed database and a managed Redis
+# behind ExternalName services or their own operator — a 16 vCPU / 64 GB primary
+# with two replicas (docs/capacity-model.md §5) is not something you express as
+# a Deployment next to the app.
+#
+# Locally they have to exist, or the entrypoint's wait_for loop blocks forever
+# and every pod looks like it is hanging on startup. These are single-replica,
+# emptyDir-backed, and sized for a laptop. Nothing here is a model of
+# production: no replica, no durability, no tuning from infra/mariadb/.
+apiVersion: v1
+kind: Service
+metadata:
+  name: mariadb-primary
+  namespace: ags-erp
+spec:
+  selector: { app: mariadb, role: primary }
+  ports:
+    - { name: mysql, port: 3306, targetPort: 3306 }
+---
+# The app reads reports from a replica. There is no replica here, so the name
+# resolves to the primary — which is correct for a functional test and wrong
+# for anything measuring replication lag.
+apiVersion: v1
+kind: Service
+metadata:
+  name: mariadb-replica
+  namespace: ags-erp
+spec:
+  selector: { app: mariadb, role: primary }
+  ports:
+    - { name: mysql, port: 3306, targetPort: 3306 }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mariadb
+  namespace: ags-erp
+  labels: { app: mariadb, role: primary }
+spec:
+  replicas: 1
+  strategy: { type: Recreate }
+  selector:
+    matchLabels: { app: mariadb, role: primary }
+  template:
+    metadata:
+      labels: { app: mariadb, role: primary }
+    spec:
+      containers:
+        - name: mariadb
+          image: mariadb:11.8
+          args:
+            # Frappe requires these three. utf8mb4 for Arabic, and Frappe's own
+            # installer checks the collation and refuses to create a site
+            # without them.
+            - --character-set-server=utf8mb4
+            - --collation-server=utf8mb4_unicode_ci
+            - --skip-character-set-client-handshake
+            # Frappe creates one database and one user per site and needs the
+            # room; the default 151 is exhausted by a handful of pods each
+            # holding a pool.
+            - --max-connections=300
+          env:
+            - name: MARIADB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef: { name: ags-erp-secrets, key: DB_ROOT_PASSWORD }
+          ports:
+            - { containerPort: 3306 }
+          resources:
+            requests: { cpu: "200m", memory: 512Mi }
+            limits:   { cpu: "2",    memory: 1536Mi }
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "mariadb-admin ping -h 127.0.0.1 -uroot -p\"$MARIADB_ROOT_PASSWORD\""]
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            failureThreshold: 30
+          volumeMounts:
+            - { name: data, mountPath: /var/lib/mysql }
+      volumes:
+        # emptyDir on purpose: this cluster is disposable, and a PVC here would
+        # outlive `kind delete cluster` only to be orphaned.
+        - name: data
+          emptyDir: {}
+---
+# Three Redis instances, not one, because they have different jobs and
+# different eviction policies — see infra/redis/ and ADR 0005. The queue one in
+# particular must never evict: under an allkeys policy Redis silently discards
+# queued jobs, which here means an unsent fee reminder with no error anywhere.
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-cache
+  namespace: ags-erp
+spec:
+  selector: { app: redis, instance: cache }
+  ports: [{ port: 13000, targetPort: 13000 }]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-socketio
+  namespace: ags-erp
+spec:
+  selector: { app: redis, instance: cache }
+  ports: [{ port: 13000, targetPort: 13000 }]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-queue
+  namespace: ags-erp
+spec:
+  selector: { app: redis, instance: queue }
+  ports: [{ port: 11000, targetPort: 11000 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-cache
+  namespace: ags-erp
+  labels: { app: redis, instance: cache }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: redis, instance: cache }
+  template:
+    metadata:
+      labels: { app: redis, instance: cache }
+    spec:
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          args: ["--port", "13000", "--maxmemory", "192mb",
+                 "--maxmemory-policy", "allkeys-lru", "--save", ""]
+          ports: [{ containerPort: 13000 }]
+          resources:
+            requests: { cpu: "50m", memory: 96Mi }
+            limits:   { cpu: "500m", memory: 256Mi }
+          readinessProbe:
+            exec: { command: ["redis-cli", "-p", "13000", "ping"] }
+            periodSeconds: 5
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-queue
+  namespace: ags-erp
+  labels: { app: redis, instance: queue }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: redis, instance: queue }
+  template:
+    metadata:
+      labels: { app: redis, instance: queue }
+    spec:
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          # noneviction, matching infra/redis/. A dropped job is a lost
+          # invoice, so a full queue must fail loudly at enqueue time.
+          args: ["--port", "11000", "--maxmemory", "192mb",
+                 "--maxmemory-policy", "noeviction", "--appendonly", "no"]
+          ports: [{ containerPort: 11000 }]
+          resources:
+            requests: { cpu: "50m", memory: 96Mi }
+            limits:   { cpu: "500m", memory: 256Mi }
+          readinessProbe:
+            exec: { command: ["redis-cli", "-p", "11000", "ping"] }
+            periodSeconds: 5

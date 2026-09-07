@@ -1,0 +1,28 @@
+# The deployed topology, in apply order.
+#
+#   kubectl apply -k infra/k8s
+#
+# Ordering is not cosmetic. The namespace and config must exist before anything
+# references them, the site must exist before `bench migrate` has something to
+# migrate, and migrate must finish before the web tier rolls — six pods each
+# running a migration against one site corrupts the schema, which is why that
+# step is a Job and not an initContainer (see 40-migrate-job-netpol.yaml).
+#
+# `kubectl apply -k` submits everything at once; it does not wait. The two Jobs
+# are idempotent and the Deployments will restart until their preconditions are
+# met, so a single apply does converge — but for a first deploy, wait on each
+# Job in turn as infra/README.md sets out, so a failure is attributed to the
+# step that caused it rather than found later in a pod log.
+#
+# infra/k8s-local/ overlays this for a disposable single-node cluster. Nothing
+# here should be edited to make that work.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - 00-namespace-config.yaml
+  - 05-site-init-job.yaml
+  - 10-web.yaml
+  - 20-workers-scheduler.yaml
+  - 30-socketio-ingress-hpa.yaml
+  - 40-migrate-job-netpol.yaml

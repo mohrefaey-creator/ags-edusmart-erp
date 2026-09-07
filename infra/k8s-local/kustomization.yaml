@@ -1,0 +1,139 @@
+# Local overlay: the production manifests, shrunk to fit one laptop node.
+#
+#   kubectl apply -k infra/k8s-local
+#
+# A sibling of infra/k8s/, not a child of it. Kustomize treats an overlay
+# nested inside its own base's root as a cycle, and the separation says the
+# right thing anyway: nothing in here is part of the deployed topology.
+#
+# The base in ../k8s is never edited for local use. Everything that differs here is
+# a patch, so `git diff` on the base always shows a production change and never
+# a debugging convenience someone forgot to revert.
+#
+# What is patched and why:
+#   replicas   29 pods -> 6. The base provisions for 625 req/s across six
+#              8-vCPU nodes; this node has 6 vCPU and 3.9 GB in total.
+#   resources  the web tier requests 4 CPU / 8 Gi per pod, which on this node
+#              means Pending forever. Shrunk to what actually schedules.
+#   storage    the base PVC is ReadWriteMany on ags-shared-nfs, which is a hard
+#              requirement for the real thing (web and workers both write
+#              attachments). kind ships local-path, which is ReadWriteOnce —
+#              workable only because every workload here is one replica on one
+#              node. This is the single biggest way the local cluster is not a
+#              model of production.
+#   PDB        minAvailable: 5 against 1 replica would block every voluntary
+#              eviction, including `kubectl drain` and node pressure.
+#
+# Deliberately NOT patched: probes, securityContext, lifecycle hooks, the
+# rolling-update strategy, queue separation, the migrate-Job-before-rollout
+# ordering. Those are the things worth exercising.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: ags-erp
+
+resources:
+  # The base as a directory, not as individual files: kustomize refuses to
+  # reference a file above its own root, and a base/overlay pair is the
+  # structure it expects anyway.
+  - ../k8s
+  - datastores.yaml
+
+images:
+  # Pulled from the local registry (scripts/k8s-local-registry.sh), not
+  # side-loaded — see the note in kind-cluster.yaml.
+  - name: ags/edusmart-erp
+    newName: localhost:5000/ags/edusmart-erp
+    newTag: local
+
+replicas:
+  - { name: ags-web,            count: 1 }
+  - { name: ags-worker-short,   count: 1 }
+  - { name: ags-worker-default, count: 1 }
+  - { name: ags-worker-long,    count: 1 }
+  - { name: ags-socketio,       count: 1 }
+
+patches:
+  # ---------------------------------------------------------------- config
+  - target: { kind: ConfigMap, name: ags-erp-config }
+    patch: |
+      - op: replace
+        path: /data/SITE_NAME
+        value: ags.localhost
+      # 17 workers is 2 x cores + 1 for an 8-vCPU node. Here it would fork 17
+      # copies of the Frappe app tree into 3.9 GB and be OOM-killed before the
+      # startup probe's first attempt.
+      - op: replace
+        path: /data/GUNICORN_WORKERS
+        value: "2"
+
+  # --------------------------------------------------------------- storage
+  - target: { kind: PersistentVolumeClaim, name: ags-sites }
+    patch: |
+      - op: replace
+        path: /spec/accessModes
+        value: ["ReadWriteOnce"]
+      - op: replace
+        path: /spec/storageClassName
+        value: standard
+      - op: replace
+        path: /spec/resources/requests/storage
+        value: 5Gi
+
+  # ------------------------------------------------------------- resources
+  - target: { kind: Deployment, name: ags-web }
+    patch: |
+      - op: replace
+        path: /spec/template/spec/containers/0/resources
+        value:
+          requests: { cpu: "200m", memory: 512Mi }
+          limits:   { cpu: "2",    memory: 1536Mi }
+  - target: { kind: Deployment, name: ags-socketio }
+    patch: |
+      - op: replace
+        path: /spec/template/spec/containers/0/resources
+        value:
+          requests: { cpu: "50m", memory: 128Mi }
+          limits:   { cpu: "500m", memory: 384Mi }
+  - target: { kind: Deployment, labelSelector: "tier=worker" }
+    patch: |
+      - op: replace
+        path: /spec/template/spec/containers/0/resources
+        value:
+          requests: { cpu: "50m", memory: 256Mi }
+          limits:   { cpu: "1",   memory: 512Mi }
+  - target: { kind: StatefulSet, name: ags-scheduler }
+    patch: |
+      - op: replace
+        path: /spec/template/spec/containers/0/resources
+        value:
+          requests: { cpu: "50m", memory: 256Mi }
+          limits:   { cpu: "500m", memory: 512Mi }
+  - target: { kind: Job, name: ags-migrate }
+    patch: |
+      - op: replace
+        path: /spec/template/spec/containers/0/resources
+        value:
+          requests: { cpu: "100m", memory: 512Mi }
+          limits:   { cpu: "2",    memory: 1536Mi }
+  - target: { kind: Job, name: ags-site-init }
+    patch: |
+      - op: replace
+        path: /spec/template/spec/containers/0/resources
+        value:
+          requests: { cpu: "100m", memory: 512Mi }
+          limits:   { cpu: "2",    memory: 1536Mi }
+  - target: { kind: CronJob, name: ags-backup }
+    patch: |
+      - op: replace
+        path: /spec/jobTemplate/spec/template/spec/containers/0/resources
+        value:
+          requests: { cpu: "100m", memory: 256Mi }
+          limits:   { cpu: "1",    memory: 1Gi }
+
+  # ------------------------------------------------------------------- PDB
+  - target: { kind: PodDisruptionBudget, name: ags-web }
+    patch: |
+      - op: replace
+        path: /spec/minAvailable
+        value: 0

@@ -1,0 +1,52 @@
+# A throwaway single-node cluster for exercising the manifests in infra/k8s.
+#
+#   kind create cluster --config infra/k8s-local/kind-cluster.yaml
+#
+# One node, not three. The production topology spreads the web tier across
+# zones (topologySpreadConstraints in 10-web.yaml), and a single node cannot
+# demonstrate that — but it also cannot fail because of it, since the constraint
+# is whenUnsatisfiable: ScheduleAnyway. Three kind nodes on a 3.9 GB box would
+# spend the memory on three kubelets instead of on the pods under test.
+#
+# What this cluster can prove: the manifests are valid, they schedule, the
+# image boots in-cluster, the probes pass, the Job/Deployment ordering works,
+# and the Service routes. What it cannot prove: capacity, zone spreading,
+# ReadWriteMany behaviour, or NetworkPolicy enforcement (see local/README.md).
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: ags-erp
+
+# Pull from a local registry rather than side-loading with `kind load`.
+#
+# `kind load docker-image` does `docker save` into a tar and imports it, which
+# holds the whole 4.35 GB artefact in flight. On a 4 GB WSL VM that took the
+# entire VM down — not the container, the VM. A registry streams compressed
+# layers and lands them straight on disk, of which there is plenty.
+#
+# It is also closer to the real thing: the node performs an actual image pull,
+# so imagePullPolicy and the image reference in the manifests are exercised
+# rather than bypassed.
+containerdConfigPatches:
+  - |-
+    [plugins."io.containerd.grpc.v1.cri".registry]
+      config_path = "/etc/containerd/certs.d"
+
+nodes:
+  - role: control-plane
+    # One patch, not two: kubeadmConfigPatches of the same kind are merged by
+    # replacement, so a second InitConfiguration silently discards the first.
+    #
+    # And no `taints: []` here. kind already removes the control-plane taint
+    # when the cluster has no worker nodes; overriding it makes kind's own
+    # untaint step fail with `taint "node-role.kubernetes.io/control-plane" not
+    # found` and the whole create is rolled back.
+    kubeadmConfigPatches:
+      # ingress-nginx's kind deployment selects on this label.
+      - |
+        kind: InitConfiguration
+        nodeRegistration:
+          kubeletExtraArgs:
+            node-labels: "ingress-ready=true"
+    extraPortMappings:
+      # So the Ingress can be reached from the host without port-forwarding.
+      - { containerPort: 30080, hostPort: 8080, protocol: TCP }

@@ -13,6 +13,23 @@ spec:
       labels: { app: ags-erp, tier: socketio }
     spec:
       securityContext: { runAsNonRoot: true, runAsUser: 1000, fsGroup: 1000 }
+      initContainers:
+        # Seed the empty volume from the image. See the long note in
+        # 05-site-init-job.yaml: sites/ is a PVC mounted over a directory the
+        # image is not empty at (apps.txt, and the asset bundles), so an empty
+        # volume hides files that are demonstrably present in the image and the
+        # pod fails on a first deploy. Mounted elsewhere on purpose — mounting
+        # it at sites/ would hide the very files being copied. cp -an never
+        # clobbers, so this is a no-op on every deploy after the first.
+        - name: seed-sites
+          image: ags/edusmart-erp:latest
+          imagePullPolicy: IfNotPresent
+          command: ["bash", "-c", "cp -an /home/frappe/frappe-bench/sites/. /mnt/sites/ 2>/dev/null || true"]
+          volumeMounts:
+            - { name: sites, mountPath: /mnt/sites }
+          resources:
+            requests: { cpu: "50m", memory: 128Mi }
+            limits:   { cpu: "500m", memory: 512Mi }
       containers:
         - name: socketio
           image: ags/edusmart-erp:latest
