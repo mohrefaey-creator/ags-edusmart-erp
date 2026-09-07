@@ -8,9 +8,10 @@
 # is evicted seconds after starting — cannot be tested. This scales them to zero
 # so there is room, and leaves the datastores alone because web needs them.
 #
-# socketio stays at zero afterwards regardless: its node_modules fix needs a
-# full image rebuild, so it crash-loops on any image patch-runtime-image.sh
-# produces, and a crash-looping pod is not free.
+# It also deletes superseded ReplicaSets rather than their pods. A rollout that
+# never finishes leaves the old ReplicaSet with a non-zero desired count, so
+# deleting its pod just makes it create another one running the old image —
+# which then gets tested by mistake.
 set -uo pipefail
 
 NS=${NS:-ags-erp}
@@ -24,18 +25,23 @@ kubectl -n "${NS}" scale deployment/ags-socketio deployment/ags-worker-short \
   deployment/ags-worker-default deployment/ags-worker-long --replicas=0 >/dev/null 2>&1
 kubectl -n "${NS}" scale statefulset/ags-scheduler --replicas=0 >/dev/null 2>&1
 
-echo "removing web pods from superseded ReplicaSets"
 current=$(kubectl -n "${NS}" describe deployment ags-web 2>/dev/null \
           | grep 'NewReplicaSet' | tr -s ' ' | cut -d' ' -f2)
-for p in $(kubectl -n "${NS}" get pods --no-headers 2>/dev/null \
-           | grep '^ags-web' | tr -s ' ' | cut -d' ' -f1); do
-  case "${p}" in
-    ${current}-*) : ;;
-    *) echo "   deleting stale ${p}"
-       kubectl -n "${NS}" delete pod "${p}" --force --grace-period=0 >/dev/null 2>&1 ;;
-  esac
+echo "current web ReplicaSet: ${current:-unknown}"
+for rs in $(kubectl -n "${NS}" get rs --no-headers 2>/dev/null \
+            | grep '^ags-web' | tr -s ' ' | cut -d' ' -f1); do
+  if [ "${rs}" != "${current}" ]; then
+    echo "   deleting superseded ReplicaSet ${rs}"
+    kubectl -n "${NS}" delete rs "${rs}" --cascade=foreground >/dev/null 2>&1
+  fi
+done
+
+echo "waiting for the datastores"
+for d in mariadb redis-cache redis-queue; do
+  kubectl -n "${NS}" rollout status "deployment/${d}" --timeout=600s 2>&1 | tail -1
 done
 
 echo "waiting for web"
 kubectl -n "${NS}" rollout status deployment/ags-web --timeout=900s 2>&1 | tail -2
+echo
 kubectl -n "${NS}" get pods 2>&1 | head -8

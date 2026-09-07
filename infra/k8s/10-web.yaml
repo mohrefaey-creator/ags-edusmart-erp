@@ -68,20 +68,53 @@ spec:
           resources:
             requests: { cpu: "4", memory: 8Gi }
             limits:   { cpu: "8", memory: 16Gi }
+          # Every probe below sends an explicit Host header, and without it none
+          # of them can ever pass.
+          #
+          # Frappe picks the site from the request's Host. A kubelet probe
+          # connects to the pod IP and sends that as Host, which matches no
+          # site, so Frappe answers 404 — to /api/method/ping, to /, to
+          # everything. gunicorn is up and logging clean access lines the whole
+          # time; the startup probe fails anyway and the kubelet restarts the
+          # pod forever. Measured in-cluster: with this header every path
+          # returns 200, without it every path returns 404.
+          #
+          # Setting default_site does NOT rescue this. It is set (see
+          # 05-site-init-job.yaml, where it is still wanted for the CLI and for
+          # socketio) and requests without a Host header still 404 — Frappe
+          # applies the fallback when resolving a site by name, not when
+          # routing an HTTP request.
+          #
+          # This value must therefore track SITE_NAME in 00-namespace-config.
+          # A probe cannot read a ConfigMap, so the coupling is stated here
+          # rather than made to disappear. infra/k8s-local patches both.
+          #
           # Startup probe first: Frappe takes 60-90s to import its app tree, and
           # without this a slow start is misread as a liveness failure and the
           # pod is killed in a loop.
           startupProbe:
-            httpGet: { path: /api/method/ping, port: http }
+            httpGet:
+              path: /api/method/ping
+              port: http
+              httpHeaders:
+                - { name: Host, value: erp.ags.edu.sa }
             periodSeconds: 5
             failureThreshold: 30
           readinessProbe:
-            httpGet: { path: /api/method/ping, port: http }
+            httpGet:
+              path: /api/method/ping
+              port: http
+              httpHeaders:
+                - { name: Host, value: erp.ags.edu.sa }
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 3
           livenessProbe:
-            httpGet: { path: /api/method/ping, port: http }
+            httpGet:
+              path: /api/method/ping
+              port: http
+              httpHeaders:
+                - { name: Host, value: erp.ags.edu.sa }
             periodSeconds: 20
             timeoutSeconds: 10
             # Deliberately tolerant. A brief DB stall should not cause a

@@ -24,9 +24,13 @@
 #   PDB        minAvailable: 5 against 1 replica would block every voluntary
 #              eviction, including `kubectl drain` and node pressure.
 #
-# Deliberately NOT patched: probes, securityContext, lifecycle hooks, the
-# rolling-update strategy, queue separation, the migrate-Job-before-rollout
-# ordering. Those are the things worth exercising.
+# Deliberately NOT patched: probe timings and thresholds, securityContext,
+# lifecycle hooks, the rolling-update strategy, queue separation, the
+# migrate-Job-before-rollout ordering. Those are the things worth exercising.
+#
+# The probes' Host header IS patched, because it names the site and the site
+# name differs here. The probes themselves — path, timings, thresholds — are
+# the base's.
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
@@ -164,6 +168,23 @@ patches:
   # sites/apps.txt and the asset bundles out of the image, which do not change
   # between the rebuilds this policy exists to pick up — and the main container
   # pulling Always refreshes the node's copy for the next pod anyway.
+
+  # ------------------------------------------------------------ probe Host
+  # The probes send an explicit Host header because Frappe routes by Host and a
+  # kubelet probe otherwise sends the pod IP, which matches no site and 404s
+  # everything (see the note in ../k8s/10-web.yaml). That header names the
+  # production site, so it has to be patched wherever SITE_NAME is.
+  - target: { kind: Deployment, name: ags-web }
+    patch: |
+      - op: replace
+        path: /spec/template/spec/containers/0/startupProbe/httpGet/httpHeaders/0/value
+        value: ags.localhost
+      - op: replace
+        path: /spec/template/spec/containers/0/readinessProbe/httpGet/httpHeaders/0/value
+        value: ags.localhost
+      - op: replace
+        path: /spec/template/spec/containers/0/livenessProbe/httpGet/httpHeaders/0/value
+        value: ags.localhost
 
   # ------------------------------------------------------------------- HPA
   # An HPA overrides its target's replica count, so the `replicas:` block above
