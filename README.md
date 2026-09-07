@@ -122,10 +122,19 @@ The capacity claim is falsifiable — `load-tests/k6/school-day.js` replays the
 attendance rush, the mid-morning plateau and the month-start parent surge, and
 fails the run if the SLOs are breached.
 
-**Not yet exercised:** the container image has not been built, the Kubernetes
-manifests have not been applied to a cluster, and the k6 profile has not been
-run. They are written and syntax-validated; treat the capacity numbers as a
-model until that changes.
+**Exercised.** The container image builds and passes 11 of 11 checks in
+`scripts/verify-image.sh` (right Python and Node, every app present *and*
+importable, AGS asset bundles built, wkhtmltopdf and Noto fonts, non-root).
+Both k6 profiles run: 399.9 req/s sustained on 4 workers at p95 7 ms, and the
+full unscaled school-day profile passing at 0.000% failed with every journey SLO
+met. Raw output in [`load-tests/`](load-tests).
+
+**Still not exercised:** the Kubernetes manifests have not been applied to a
+cluster, and nothing has run at production data volumes. The load runs used 203
+students and 4,208 GL entries, so they show the application has no gross
+inefficiency on these paths — they do not prove the 2,500-user number.
+[`docs/capacity-model.md`](docs/capacity-model.md) §10.2 says exactly where the
+line is; the sizing there is deliberately unchanged.
 
 ## Documentation
 

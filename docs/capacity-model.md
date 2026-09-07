@@ -80,6 +80,13 @@ service time:
 1 worker ≈ 1 / 0.110 ≈ 9 requests/second
 ```
 
+> **Measured, with a caveat that matters.** A single node has since sustained
+> **100 req/s per worker** at p95 7 ms — see §10.1. That is eleven times this
+> assumption, and it is *not* a reason to shrink the fleet: the measurement ran
+> against 4,208 GL entries, where every query fits in the buffer pool. §10.2
+> sets out exactly what the number does and does not establish. The 9 req/s
+> figure stays until the same profile runs at production data volumes.
+
 Applying Little's Law with a safety margin (target ≤70% worker utilisation, so
 queueing delay stays bounded):
 
@@ -211,6 +218,61 @@ absorbs a burst without waiting for a scale-up.
 Not by assertion — by `load-tests/`. `k6/school-day.js` replays the shape of a
 real day (attendance rush, mid-morning plateau, month-start parent surge) and
 asserts the SLOs in §11. Run it against staging before every capacity change.
+
+### 10.1 What has actually been measured
+
+Both profiles have been run end to end. Raw output is in
+`load-tests/results-*.txt`.
+
+**Environment.** One machine, WSL2 Ubuntu 26.04, 6 vCPU / 3.9 GB, MariaDB 11.8.6
+and Redis local, **4** gunicorn workers with the same flags the container image
+uses (`infra/docker/entrypoint.sh`), not `bench serve`.
+
+**Dataset.** 203 students, 201 payer accounts and fee plans, 601 submitted
+invoices, 603 installments, 4,208 GL entries, 86 KPI snapshots.
+
+| Run | Offered | Result |
+|---|---|---|
+| `calibrate.js`, flat 60s hold | 400 req/s | 399.9 req/s sustained, **100 req/s per worker**, p50 4 ms, p95 7 ms, 0 errors |
+| `school-day.js`, unscaled | full 2,500-user shape | 39,545 requests, peak 77.9/s, **0.000% failed**, all four journey SLOs met |
+
+School-day p95 by journey, against the §11 targets:
+
+| Journey | Measured | SLO |
+|---|---:|---:|
+| Portal | 8 ms | 500 ms |
+| Desk | 9 ms | 1,200 ms |
+| Attendance | 13 ms | 1,500 ms |
+| Payment | 9 ms | 2,000 ms |
+
+Both runs sign in as role-scoped users (`AGS Teacher`, `AGS Parent`,
+`AGS Finance Manager`), never Administrator, so the row-scoping subqueries in
+`ags_core/permissions.py` are part of every measured request.
+
+### 10.2 What this does **not** establish
+
+The measured 100 req/s per worker is eleven times the 9 req/s assumed in §3.
+**Do not reduce the node count on the strength of it.** The gap is the dataset,
+not the code:
+
+- p50 of 4 ms is not a Frappe request doing real work; it is a request whose
+  every table fits in the buffer pool. §3's 110 ms blended service time assumes
+  production volumes — millions of GL entries, hundreds of thousands of
+  invoices. 4,208 GL entries is four thousand, not four million.
+- The read mix is the cheap end: indexed list reads with `limit_page_length` of
+  20–40, a count, and a KPI snapshot lookup. No desk form load with its child
+  tables, no PDF render, no month-end posting run.
+- One box, one MariaDB, no replica lag, no network between tiers, no TLS
+  termination, no nginx.
+
+So the honest reading is narrower and still worth having: **the application has
+no gross inefficiency on these paths, the row-scoping design works under
+concurrency, and the harness measures what it claims to.** The 2,500-user
+capacity claim remains an extrapolation from §3's arithmetic until the same
+profiles are run against staging at production data volumes.
+
+Until then §3's sizing stands unchanged. It is the conservative direction, which
+is the correct direction to be wrong in.
 
 ## 11. SLOs
 

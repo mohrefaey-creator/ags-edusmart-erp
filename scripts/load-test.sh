@@ -139,8 +139,8 @@ if [ "${MODE}" = "calibrate" ] || [ "${MODE}" = "both" ]; then
     -e "SITE_HOST=${SITE}" \
     -e "WORKERS=${WORKERS}" \
     -e "PEAK_RPS=${PEAK_RPS}" \
-    -e "USER=Administrator" \
-    -e "PASSWORD=${ADMIN_PASSWORD}" \
+    -e "USER=lt.staff001@loadtest.invalid" \
+    -e "PASSWORD=${LOADTEST_PASSWORD}" \
     --no-usage-report \
     calibrate.js
 fi

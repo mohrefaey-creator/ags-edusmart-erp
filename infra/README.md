@@ -123,6 +123,27 @@ capacity to absorb a missing node.
 
 ## Proving the capacity claim
 
+Locally, against a production-shaped process model (gunicorn with the image's
+flags — never `bench serve`, which is single-threaded Werkzeug and measures
+nothing):
+
+```bash
+sudo bash scripts/seed-loadtest.sh 200     # volume, or the test measures 3 rows
+sudo bash scripts/load-test.sh calibrate   # per-worker throughput
+sudo SCALE=1 bash scripts/load-test.sh school-day
+```
+
+Last run, 4 workers on one box: **399.9 req/s sustained (100 req/s per worker,
+p95 7 ms)** and the full unscaled school-day profile passing at **0.000% failed**
+with every journey SLO met. Raw output is in `../load-tests/results-*.txt`.
+
+Read [`../docs/capacity-model.md`](../docs/capacity-model.md) §10.2 before
+quoting those numbers. They were measured against 4,208 GL entries, so they say
+the application has no gross inefficiency on these paths — not that the
+2,500-user claim is proven. The sizing below is unchanged.
+
+Against staging:
+
 ```bash
 k6 run -e BASE_URL=https://erp-staging.ags.edu.sa \
        -e PARENT_PASSWORD=... -e TEACHER_PASSWORD=... \

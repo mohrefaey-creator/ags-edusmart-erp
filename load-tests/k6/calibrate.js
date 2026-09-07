@@ -83,8 +83,18 @@ export const options = {
   hosts: HOSTS,
 };
 
+// One login, in setup, shared by every VU. That is deliberate here and wrong in
+// school-day.js: this profile is measuring the cost of a read, not the shape of
+// a day, so the session is a fixture rather than part of what is being tested.
+//
+// The account must NOT be Administrator. Administrator bypasses permission
+// checks entirely, so the row-scoping subqueries in ags_core/permissions.py —
+// which run on Sales Invoice, Student and Material Request, and are a large
+// part of what each read actually costs — would never execute. The measurement
+// would come out faster than production for a reason nothing in the output
+// would reveal.
 export function setup() {
-  const usr = __ENV.USER || 'Administrator';
+  const usr = __ENV.USER || 'lt.staff001@loadtest.invalid';
   const pwd = __ENV.PASSWORD || '';
   const res = http.post(`${BASE}/api/method/login`, { usr, pwd });
   if (res.status !== 200) {

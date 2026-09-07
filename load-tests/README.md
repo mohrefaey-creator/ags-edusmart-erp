@@ -86,3 +86,30 @@ A breach is information, not just a red mark:
 | Both climb together, CPU flat | database — see `docs/runbooks/slow-response.md` §3 |
 | `ags_read_latency` fine until a step, then a cliff | worker saturation; the knee is your real capacity |
 | KPI read p95 in seconds | a dashboard reverted to live aggregation (ADR 0004) |
+
+## Results
+
+`results-calibrate-400rps.txt` and `results-school-day-unscaled.txt` are the raw
+output of the last run. Summary and, more importantly, the limits of what they
+prove: [`../docs/capacity-model.md`](../docs/capacity-model.md) §10.
+
+## Diagnosing a failed run
+
+k6 reports a failure *rate* and nothing about the cause, and in this system four
+completely different faults all present as "most requests failed" with
+implausibly good latency, because an error response is fast. Every one of these
+was hit while getting the profile to pass:
+
+| Symptom | Cause | Tool |
+|---|---|---|
+| "gunicorn did not come up" while it is plainly up | Request Host resolves to `default_site`, a different database | `scripts/probe-endpoints.sh` |
+| 84% fail, "Insufficient Permission" | Role has no DocType-level access, so row scoping never runs | `scripts/probe-endpoints.sh` |
+| ~50% of logins 500 | Concurrent logins for one account race in Frappe's session bookkeeping | `scripts/probe-login-concurrency.sh` |
+| 93% fail, "Login to access" | k6 empties the cookie jar between iterations | `scripts/probe-session.sh` |
+| 19% fail on exactly one endpoint | A recycled VU kept the previous scenario's session | the `FAIL` samples below |
+
+Run the probes before re-running an eight-minute profile — each answers its
+question in under a minute. `school-day.js` also prints the first few non-200
+responses with status and body (`-e FAILURE_SAMPLES=25`), which is usually
+enough on its own: "93% failed" and "93% timed out" look identical in the k6
+summary and mean entirely different things.

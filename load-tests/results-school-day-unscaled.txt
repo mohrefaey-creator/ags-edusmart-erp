@@ -1,0 +1,13 @@
+AGS EduSmart ERP - school-day load profile
+==========================================
+  requests          39545
+  peak rate         77.9/s
+  failed            0.000%
+  p95 by journey (SLO in brackets)
+    portal              8 ms   (500)
+    desk                9 ms   (1200)
+    attendance         13 ms   (1500)
+    payment             9 ms   (2000)
+  p99 overall         n/a ms   (3000)
+gunicorn stopped
+[exited with code 0]
