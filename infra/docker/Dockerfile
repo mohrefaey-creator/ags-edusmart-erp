@@ -112,9 +112,20 @@ RUN ./env/bin/pip install --no-cache-dir -e apps/ags_edusmart \
  # Printed so the layer's log carries proof the file is one app per line.
  && cat sites/apps.txt
 
+# Every app's node_modules is build-only EXCEPT frappe's.
+#
+# apps/frappe/socketio.js requires its dependencies at *runtime* — it is a Node
+# process, not a bundle — so deleting apps/frappe/node_modules to save space
+# makes the socketio role die at startup with MODULE_NOT_FOUND and a require
+# stack pointing at frappe/realtime/index.js. The other apps' node_modules are
+# genuinely build-only. The `test -d` makes a future cleanup that removes
+# frappe's fail the build rather than the cluster.
 RUN bench build --production \
  && find . -name '__pycache__' -type d -prune -exec rm -rf {} + \
- && rm -rf /home/frappe/.cache /home/frappe/frappe-bench/apps/*/node_modules
+ && rm -rf /home/frappe/.cache \
+ && find apps -mindepth 2 -maxdepth 2 -name node_modules -type d \
+      -not -path 'apps/frappe/*' -prune -exec rm -rf {} + \
+ && test -d apps/frappe/node_modules
 
 # ---------------------------------------------------------------------- runtime
 FROM ${PYTHON_IMAGE} AS runtime
@@ -154,6 +165,14 @@ RUN curl -fsSL https://deb.nodesource.com/setup_${NODE_MAJOR}.x | bash - \
 
 RUN useradd -ms /bin/bash frappe
 COPY --from=builder --chown=frappe:frappe /home/frappe /home/frappe
+
+# Frappe's logging opens files under a logs/ directory on first use and does
+# not create it. Without this the web role dies during startup on
+# `FileNotFoundError: '/home/frappe/logs/cssutils.log'` — a log file, for a CSS
+# library, taking the application down. Both locations are created because
+# which one is used depends on how the bench path resolves for the process.
+RUN mkdir -p /home/frappe/logs /home/frappe/frappe-bench/logs \
+ && chown -R frappe:frappe /home/frappe/logs /home/frappe/frappe-bench/logs
 
 COPY --chown=frappe:frappe infra/docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh

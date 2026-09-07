@@ -131,6 +131,55 @@ patches:
           requests: { cpu: "100m", memory: 256Mi }
           limits:   { cpu: "1",    memory: 1Gi }
 
+  # ------------------------------------------------------- image pull policy
+  # `:local` is a mutable tag that gets rebuilt and re-pushed constantly during
+  # development, and the base sets imagePullPolicy: IfNotPresent — correct for
+  # an immutable release tag, and wrong here. The node had already cached an
+  # earlier `:local`, so it kept running the old image after a fix was pushed
+  # and the pods failed on a bug that had already been fixed twice.
+  #
+  # Not patched into the base: in production the tag is a release identifier and
+  # IfNotPresent is what you want.
+  - target: { kind: Deployment }
+    patch: |
+      - op: replace
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: Always
+  - target: { kind: Job }
+    patch: |
+      - op: replace
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: Always
+  - target: { kind: StatefulSet, name: ags-scheduler }
+    patch: |
+      - op: replace
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: Always
+  - target: { kind: CronJob, name: ags-backup }
+    patch: |
+      - op: replace
+        path: /spec/jobTemplate/spec/template/spec/containers/0/imagePullPolicy
+        value: Always
+  # The seed-sites initContainers keep IfNotPresent deliberately. They only copy
+  # sites/apps.txt and the asset bundles out of the image, which do not change
+  # between the rebuilds this policy exists to pick up — and the main container
+  # pulling Always refreshes the node's copy for the next pod anyway.
+
+  # ------------------------------------------------------------------- HPA
+  # An HPA overrides its target's replica count, so the `replicas:` block above
+  # is quietly undone by minReplicas: 6 — the deploy came up with six web pods,
+  # five of them Pending forever on a node that fits one. The HPAs are kept
+  # rather than dropped so they are still exercised as objects; with no
+  # metrics-server here they report unknown metrics and never actually scale.
+  - target: { kind: HorizontalPodAutoscaler }
+    patch: |
+      - op: replace
+        path: /spec/minReplicas
+        value: 1
+      - op: replace
+        path: /spec/maxReplicas
+        value: 2
+
   # ------------------------------------------------------------------- PDB
   - target: { kind: PodDisruptionBudget, name: ags-web }
     patch: |

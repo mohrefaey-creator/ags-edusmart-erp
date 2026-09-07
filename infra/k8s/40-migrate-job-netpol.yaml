@@ -129,6 +129,14 @@ metadata:
 spec:
   # Only the application tiers may reach MariaDB and Redis. Nothing outside the
   # namespace can, and the ingress controller cannot either.
+  #
+  # NOTE: this selects on `tier`, so whatever provides MariaDB and Redis in a
+  # given environment MUST label its pods `tier: database` and `tier: redis`.
+  # Those workloads are not in this repository — the capacity model assumes a
+  # managed database and a managed Redis — so this is a contract with something
+  # outside it, and an unlabelled datastore is not merely unprotected: the
+  # default-deny below then blocks every client, and the app times out
+  # connecting to a service whose endpoints are perfectly healthy.
   podSelector:
     matchExpressions:
       - { key: tier, operator: In, values: [database, redis] }
@@ -139,7 +147,12 @@ spec:
             matchExpressions:
               - key: tier
                 operator: In
-                values: [web, worker, scheduler, socketio, migrate]
+                # site-init belongs here for the same reason migrate does: it
+                # is a one-shot Job that talks to MariaDB and Redis. Leaving it
+                # out does not produce a permission error, it produces a
+                # connection timeout — the site creation simply hangs and then
+                # fails, naming Redis rather than this policy.
+                values: [web, worker, scheduler, socketio, migrate, site-init]
       ports:
         - { protocol: TCP, port: 3306 }
         - { protocol: TCP, port: 11000 }

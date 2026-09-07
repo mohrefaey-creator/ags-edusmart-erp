@@ -82,6 +82,19 @@ kubectl -n "${NS}" create secret generic ags-erp-secrets \
 echo "   secrets generated (admin password printed at the end)"
 
 # ----------------------------------------------------------------- apply
+# A Job's pod template is immutable, so re-applying a changed Job is rejected
+# with `field is immutable` and a full dump of the spec. Both Jobs here are
+# idempotent by design and safe to recreate, and this is exactly the sequence
+# 40-migrate-job-netpol.yaml documents for a real deploy:
+#
+#   kubectl -n ags-erp delete job ags-migrate --ignore-not-found
+#
+# Deleting them before the apply also clears a previous failed run, so `wait
+# --for=condition=complete` is not satisfied by a stale Job object.
+say "Removing previous Job objects (their pod template is immutable)"
+kubectl -n "${NS}" delete job ags-site-init ags-migrate \
+  --ignore-not-found --wait=true >/dev/null 2>&1
+
 say "Applying infra/k8s via the local overlay"
 # The overlay carries the Secret template too; ours must win, so it is applied
 # after and the template's placeholder values are overwritten. Ordering here is
@@ -126,7 +139,19 @@ kubectl -n "${NS}" wait --for=condition=complete job/ags-site-init --timeout=180
     die "site-init did not complete"
   }
 
+# Recreate migrate now that the site exists.
+#
+# `kubectl apply -k` submits both Jobs together, so migrate starts racing
+# site-init and loses: it fails with `404 Not Found: ags.localhost does not
+# exist`, and with backoffLimit: 0 it does not retry — correctly, because a
+# failed migration must be inspected rather than repeated blindly.
+#
+# This is the sequence 40-migrate-job-netpol.yaml documents for a real deploy:
+# migrate is its own step, run after the thing it migrates exists.
 say "Migrate"
+kubectl -n "${NS}" delete job ags-migrate --ignore-not-found --wait=true >/dev/null 2>&1
+kubectl apply -k "${REPO_ROOT}/infra/k8s-local" >/dev/null 2>&1 || die "could not recreate migrate"
+
 kubectl -n "${NS}" wait --for=condition=complete job/ags-migrate --timeout=1800s \
   || {
     echo "--- migrate logs ---" >&2

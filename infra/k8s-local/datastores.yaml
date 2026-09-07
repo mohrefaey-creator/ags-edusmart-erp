@@ -34,12 +34,20 @@ spec:
   ports:
     - { name: mysql, port: 3306, targetPort: 3306 }
 ---
+# The `tier` labels below are not decoration. infra/k8s/40-migrate-job-netpol
+# selects the datastores with `tier in (database, redis)`, and pairs that with a
+# default-deny. An unlabelled datastore is therefore not merely unprotected —
+# the deny applies and nothing can reach it, which surfaces as the app timing
+# out against a Service whose endpoints are perfectly healthy.
+#
+# Only the pod template carries them, not the selector: a Deployment's selector
+# is immutable, so adding a label there fails on an existing deployment.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: mariadb
   namespace: ags-erp
-  labels: { app: mariadb, role: primary }
+  labels: { app: mariadb, role: primary, tier: database }
 spec:
   replicas: 1
   strategy: { type: Recreate }
@@ -47,7 +55,7 @@ spec:
     matchLabels: { app: mariadb, role: primary }
   template:
     metadata:
-      labels: { app: mariadb, role: primary }
+      labels: { app: mariadb, role: primary, tier: database }
     spec:
       containers:
         - name: mariadb
@@ -122,14 +130,14 @@ kind: Deployment
 metadata:
   name: redis-cache
   namespace: ags-erp
-  labels: { app: redis, instance: cache }
+  labels: { app: redis, instance: cache, tier: redis }
 spec:
   replicas: 1
   selector:
     matchLabels: { app: redis, instance: cache }
   template:
     metadata:
-      labels: { app: redis, instance: cache }
+      labels: { app: redis, instance: cache, tier: redis }
     spec:
       containers:
         - name: redis
@@ -149,14 +157,14 @@ kind: Deployment
 metadata:
   name: redis-queue
   namespace: ags-erp
-  labels: { app: redis, instance: queue }
+  labels: { app: redis, instance: queue, tier: redis }
 spec:
   replicas: 1
   selector:
     matchLabels: { app: redis, instance: queue }
   template:
     metadata:
-      labels: { app: redis, instance: queue }
+      labels: { app: redis, instance: queue, tier: redis }
     spec:
       containers:
         - name: redis

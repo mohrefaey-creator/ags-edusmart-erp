@@ -38,13 +38,22 @@ cp "${REPO_ROOT}/infra/docker/entrypoint.sh" "${work}/entrypoint.sh"
 
 # Mirrors the runtime stage of infra/docker/Dockerfile. Keep in step with it.
 #
-# git is here for the same reason it is in the Dockerfile: bench imports
-# GitPython at module level, and GitPython raises on import when the git binary
-# is missing, so every bench-based role fails before it starts.
+# git: bench imports GitPython at module level, and GitPython raises on import
+# when the git binary is missing, so every bench-based role fails before it
+# starts.
+#
+# logs/: Frappe's logging opens files under a logs/ directory on first use and
+# does not create it, so the web role dies during startup on
+# `FileNotFoundError: '/home/frappe/logs/cssutils.log'`.
+#
+# What this CANNOT re-apply is anything from the builder stage — notably
+# keeping apps/frappe/node_modules, which the socketio role needs at runtime.
+# That one requires a full build.
 cat > "${work}/Dockerfile" <<EOF
 FROM ${BASE}
 USER root
-RUN apt-get update  && apt-get install -y --no-install-recommends git  && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends git && rm -rf /var/lib/apt/lists/*
+RUN mkdir -p /home/frappe/logs /home/frappe/frappe-bench/logs && chown -R frappe:frappe /home/frappe/logs /home/frappe/frappe-bench/logs
 COPY --chown=frappe:frappe entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 USER frappe

@@ -54,10 +54,21 @@ RWO, which works only because every workload here is one replica on one node.
 A RWO volume in production would appear to work with one replica and then fail
 to schedule the second — the exact failure the base comment warns about.
 
-**NetworkPolicies are applied but not enforced.** kind's default CNI (kindnet)
-does not implement NetworkPolicy. All three policies apply cleanly and do
-nothing, so a green run says only that they parse. Enforcement needs Calico or
-Cilium; do not read this as the default-deny being verified.
+**NetworkPolicies *are* enforced here** — which is the opposite of what this
+document originally claimed. Older kindnet ignored NetworkPolicy; the version
+shipped with kind 0.30 / Kubernetes 1.34 implements it, and the deploy proved
+it the hard way: `default-deny-ingress` blocked the site-init Job from reaching
+Redis, and the failure presented as a connection timeout against a Service
+whose endpoints were perfectly healthy.
+
+So a green run here does exercise the policies. Two things it taught:
+
+- `allow-data-from-app` selects datastores by `tier in (database, redis)`. Those
+  workloads live outside this repository, so that label is a contract with
+  whatever provides MariaDB and Redis. An unlabelled datastore is not merely
+  unprotected — the default-deny applies and nothing can reach it at all.
+- `tier: site-init` had to be added to the allowed client list. It was missing
+  because the Job itself was missing.
 
 **The HPAs cannot act.** There is no metrics-server, so both
 HorizontalPodAutoscalers report unknown metrics and never scale. They are
