@@ -132,6 +132,17 @@ case "${bench_version}" in
   *) bad "bench does not run: ${bench_version}" ;;
 esac
 
+# socketio is a Node process that resolves its dependencies at runtime rather
+# than bundling them, so a node_modules cleanup in the build can leave the image
+# looking perfectly healthy while that one role cannot start at all. It failed
+# with MODULE_NOT_FOUND and a require stack pointing at frappe/realtime/index.js,
+# and every other check here still passed.
+nm=$(run 'ls apps/frappe/node_modules 2>/dev/null | wc -l')
+case "${nm}" in
+  ''|0) bad "apps/frappe/node_modules is missing — the socketio role cannot start" ;;
+  *) ok "frappe node_modules present (${nm} packages, socketio needs them at runtime)" ;;
+esac
+
 # ----------------------------------------------------------------- entrypoint
 entry=$(docker run --rm --entrypoint /bin/bash "${TAG}" -c 'head -1 /usr/local/bin/entrypoint.sh' 2>&1)
 case "${entry}" in
