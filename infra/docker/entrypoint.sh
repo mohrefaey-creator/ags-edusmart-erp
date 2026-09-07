@@ -33,6 +33,20 @@ case "${1:-web}" in
   web)
     WORKERS=${GUNICORN_WORKERS:-17}
     log "starting gunicorn with ${WORKERS} workers"
+    # gunicorn must run from sites/, not from the bench root.
+    #
+    # Frappe resolves its sites path relative to the working directory, and
+    # bench's own supervisor config runs this exact command with
+    # `directory=<bench>/sites`. Started from the bench root instead, Frappe
+    # initialises with no sites, builds an empty URL map, and answers *every*
+    # request — /, /app, /api/method/ping — with Werkzeug's 404. Not Frappe's
+    # "site does not exist" page: Werkzeug's, because as far as the router is
+    # concerned no route was ever registered.
+    #
+    # gunicorn is up, healthy, logging access lines, and serving 404 to
+    # everything. The startup probe fails, the kubelet restarts the pod, and
+    # the loop looks like a probe problem rather than a one-word cwd bug.
+    cd "${BENCH_DIR}/sites"
     exec gunicorn \
       --bind 0.0.0.0:8000 \
       --workers "${WORKERS}" \

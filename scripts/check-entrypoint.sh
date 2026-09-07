@@ -31,3 +31,14 @@ if printf '%s\n' "${out}" | grep -q 'env/bin/bench'; then
 fi
 echo
 echo "OK: entrypoint resolves bench from PATH."
+
+# The web role must cd into sites/ before exec'ing gunicorn. Frappe resolves its
+# sites path from the working directory; from the bench root it registers no
+# routes and answers every request with a 404 while looking perfectly healthy.
+if docker run --rm --entrypoint /bin/bash "${TAG}" -c      'grep -A3 "^  web)" /usr/local/bin/entrypoint.sh | grep -q "cd .*sites"       || grep -B12 "exec gunicorn" /usr/local/bin/entrypoint.sh | grep -q "cd .*/sites"'
+then
+  echo "OK: web role runs gunicorn from sites/."
+else
+  echo "FAIL: web role execs gunicorn without cd'ing to sites/ — every route will 404." >&2
+  exit 1
+fi
