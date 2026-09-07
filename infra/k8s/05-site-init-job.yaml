@@ -84,6 +84,21 @@ spec:
               bench set-config -g redis_queue "redis://${REDIS_QUEUE_HOST}:11000"
               bench set-config -g redis_socketio "redis://${REDIS_SOCKETIO_HOST}:13000"
 
+              # default_site is what makes the health probes work.
+              #
+              # Frappe resolves which site to serve from the request's Host
+              # header. A kubelet probe connects to the pod IP and sends that as
+              # Host, which matches no site, so /api/method/ping returns 404 —
+              # gunicorn is healthy and serving, and the startup probe fails
+              # anyway. Every web pod then crash-loops with a perfectly good
+              # application inside it.
+              #
+              # Setting default_site makes any unmatched Host resolve to this
+              # site, which is correct here because the deployment serves
+              # exactly one. A multi-site deployment would instead have to give
+              # each probe an explicit Host header.
+              bench set-config -g default_site "${SITE}"
+
               if [ -f "sites/${SITE}/site_config.json" ]; then
                 echo "[site-init] ${SITE} already exists — nothing to do"
                 exit 0
