@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-# Force-remove pods stuck in Terminating.
+# Force-remove pods stuck in Terminating or Unknown.
 #
 #   sudo bash scripts/k8s-reap-stuck-pods.sh
 #
-# A pod that is Terminating still holds its memory *request* against the node,
+# A pod that is Terminating, or Unknown because the node that owned it went
+# away mid-run, still holds its memory *request* against the node,
 # so on a single small node a handful of stuck pods take the scheduler below the
 # threshold for anything new and every subsequent pod sits in Pending with
 # "Insufficient memory" — which reads as the manifests asking for too much,
@@ -17,10 +18,10 @@ set -uo pipefail
 NS=${NS:-ags-erp}
 
 stuck=$(kubectl -n "${NS}" get pods --no-headers 2>/dev/null \
-        | grep Terminating | cut -d' ' -f1)
+        | grep -E 'Terminating|Unknown' | cut -d' ' -f1)
 
 if [ -z "${stuck}" ]; then
-  echo "no pods stuck in Terminating"
+  echo "no pods stuck in Terminating or Unknown"
   exit 0
 fi
 
