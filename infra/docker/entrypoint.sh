@@ -25,9 +25,18 @@ wait_for() {
 
 # Every role needs the database and Redis; failing fast here gives a readable
 # error instead of a Frappe traceback 40 lines deep.
+#
+# The Redis ports are configurable and default to the odd values bench's own
+# config generator picks. They were hardcoded, which is fine for the Redis
+# deployed alongside this and wrong for every managed one: ElastiCache, Azure
+# Cache and Redis Cloud all serve 6379. Against a correctly configured managed
+# Redis the app would have been fine and the entrypoint would have refused to
+# start it, reporting the datastore unreachable at a port nothing was listening
+# on. Set REDIS_CACHE_PORT / REDIS_QUEUE_PORT to match the URLs in the site
+# config.
 wait_for "${DB_HOST:-mariadb}" "${DB_PORT:-3306}" "MariaDB"
-wait_for "${REDIS_CACHE_HOST:-redis-cache}" 13000 "redis-cache"
-wait_for "${REDIS_QUEUE_HOST:-redis-queue}" 11000 "redis-queue"
+wait_for "${REDIS_CACHE_HOST:-redis-cache}" "${REDIS_CACHE_PORT:-13000}" "redis-cache"
+wait_for "${REDIS_QUEUE_HOST:-redis-queue}" "${REDIS_QUEUE_PORT:-11000}" "redis-queue"
 
 case "${1:-web}" in
   web)
@@ -85,6 +94,20 @@ case "${1:-web}" in
     # concurrent migrations on one site corrupt the schema.
     log "migrating ${SITE}"
     exec bench --site "${SITE}" migrate
+    ;;
+
+  backup)
+    # A role, not a bare `bench backup` in the CronJob's args, so the site name
+    # comes from SITE_NAME like every other role's does. The CronJob used to
+    # name the site itself, which meant the production site name was written in
+    # two places and the nightly backup failed anywhere it disagreed — on the
+    # local cluster it ran against erp.ags.edu.sa, which does not exist there.
+    # A backup that fails is discovered when it is needed.
+    log "backing up ${SITE}"
+    # shift drops the role word, exactly as the bench) case does; without it
+    # "backup" is passed on as an argument too and bench rejects the duplicate.
+    shift
+    exec bench --site "${SITE}" backup "$@"
     ;;
 
   bench)

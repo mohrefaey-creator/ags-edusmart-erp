@@ -80,7 +80,11 @@ spec:
           containers:
             - name: backup
               image: ags/edusmart-erp:latest
-              args: ["bench", "--site", "erp.ags.edu.sa", "backup", "--with-files"]
+              # The "backup" role, not a bench command line naming the site.
+              # The site name lives in SITE_NAME in the ConfigMap; repeating it
+              # here meant the nightly backup silently targeted a site that
+              # does not exist in any environment where the two disagreed.
+              args: ["backup", "--with-files"]
               envFrom:
                 - configMapRef: { name: ags-erp-config }
                 - secretRef: { name: ags-erp-secrets }
