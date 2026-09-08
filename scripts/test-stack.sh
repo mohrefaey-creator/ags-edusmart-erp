@@ -7,24 +7,20 @@
 #
 # WHY NOT THE KUBERNETES CLUSTER
 #
-# Two reasons, and the second is the important one.
-#
-# The local cluster on this machine falls over every few minutes under memory
-# pressure, and a test run that takes longer than the cluster stays up cannot
-# produce a result. But more fundamentally: testing application logic does not
-# need Kubernetes. The cluster proves the deployment topology; this proves the
-# code. Keeping them apart means this can run in CI on any machine with Docker,
-# which is where it belongs.
+# The local cluster on this machine falls over more often than a full run takes,
+# so a run longer than the cluster's uptime cannot produce a result. But the
+# better reason: testing application logic does not need Kubernetes. The cluster
+# proves the deployment topology; this proves the code. Split, this runs
+# anywhere Docker does, CI included.
 #
 # WHY A DATABASE IS NOT OPTIONAL, EVEN FOR THE "UNIT" TESTS
 #
 # frappe's UnitTestCase sounds database-free and is not. flt(x, precision)
-# rounds using the rounding method stored in System Settings, and reading that
-# needs a database; without one, rounded() raises RuntimeError("object is not
-# bound"), flt swallows it, and returns 0.0. Every money assertion then fails
-# with amounts silently collapsed to zero, which reads exactly like a broken
-# fee calculation. See scripts/check-flt-context.sh — that is a real trap, not
-# a hypothetical.
+# rounds using the method in System Settings, and reading that needs a database;
+# without one rounded() raises RuntimeError("object is not bound"), flt swallows
+# it and returns 0.0. Every money assertion then fails with amounts silently
+# collapsed to zero, which reads exactly like a broken fee engine. Measured in
+# scripts/check-flt-context.sh.
 set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -33,6 +29,11 @@ NET=${NET:-ags-test-net}
 DB=${DB:-ags-test-db}
 REDIS=${REDIS:-ags-test-redis}
 VOL=${VOL:-ags-test-sites}
+# The database needs a volume too. Without one the site files survive a run and
+# the database they point at does not, so the next run authenticates as a user
+# that no longer exists and dies on "Access denied" — a broken reuse that reads
+# as a credentials bug.
+DBVOL=${DBVOL:-ags-test-db-data}
 SITE=${SITE:-test.localhost}
 DB_ROOT_PASSWORD=${DB_ROOT_PASSWORD:-testroot}
 ADMIN_PASSWORD=${ADMIN_PASSWORD:-testadmin}
@@ -49,11 +50,32 @@ case "${1:-}" in
   --down)
     say "Removing the test stack"
     teardown
-    docker volume rm "${VOL}" >/dev/null 2>&1 || true
+    docker volume rm "${VOL}" "${DBVOL}" >/dev/null 2>&1 || true
     note "gone"
     exit 0 ;;
   --fresh)
-    docker volume rm "${VOL}" >/dev/null 2>&1 || true ;;
+    # Loud, not `|| true`. Swallowing this failure makes --fresh silently reuse
+    # the old volume, and a half-installed site from a previous failed run then
+    # fails again in a way that looks like a bug in the apps: the first run here
+    # died partway through erpnext, and every later --fresh re-ran against that
+    # wreckage and reported the same LinkValidationError. The flag has to mean
+    # what it says or it is worse than not existing.
+    docker rm -f "${DB}" "${REDIS}" >/dev/null 2>&1 || true
+    # Both volumes together: dropping the site without the database (or the
+    # reverse) leaves the two disagreeing about which site exists, and the next
+    # run authenticates as a database user that no longer exists.
+    for v in "${VOL}" "${DBVOL}"; do
+      if docker volume inspect "${v}" >/dev/null 2>&1; then
+        docker volume rm "${v}" >/dev/null 2>&1 || {
+          echo "--fresh could not remove volume ${v}; something still holds it:" >&2
+          docker ps -a --filter "volume=${v}" --format '  {{.Names}} ({{.Status}})' >&2
+          exit 1
+        }
+      fi
+      docker volume inspect "${v}" >/dev/null 2>&1 && {
+        echo "--fresh: volume ${v} still exists after removal" >&2; exit 1; }
+    done
+    ;;
 esac
 
 docker image inspect "${TAG}" >/dev/null 2>&1 || {
@@ -62,71 +84,64 @@ docker image inspect "${TAG}" >/dev/null 2>&1 || {
 say "Datastores"
 docker network create "${NET}" >/dev/null 2>&1 || true
 docker volume create "${VOL}" >/dev/null 2>&1 || true
-
+docker volume create "${DBVOL}" >/dev/null 2>&1 || true
 docker rm -f "${DB}" "${REDIS}" >/dev/null 2>&1 || true
 
-# Frappe requires utf8mb4 and a barracuda row format; the defaults in the
-# official image are not what it expects and site creation fails late with a
-# row-size error rather than early with a config one.
+# utf8mb4 and per-table innodb: frappe needs both, and the image defaults fail
+# late with a row-size error rather than early with a config one.
 docker run -d --name "${DB}" --network "${NET}" \
   -e MARIADB_ROOT_PASSWORD="${DB_ROOT_PASSWORD}" \
+  -v "${DBVOL}:/var/lib/mysql" \
   --health-cmd='healthcheck.sh --connect' --health-interval=5s \
   mariadb:11 \
   --character-set-server=utf8mb4 \
   --collation-server=utf8mb4_unicode_ci \
   --innodb-file-per-table=1 \
-  --innodb-read-only-compressed=0 >/dev/null
+  --innodb-read-only-compressed=0 >/dev/null || exit 1
 
-docker run -d --name "${REDIS}" --network "${NET}" redis:7-alpine >/dev/null
+docker run -d --name "${REDIS}" --network "${NET}" redis:7-alpine >/dev/null || exit 1
 
 note "waiting for MariaDB"
+state=starting
 for _ in $(seq 1 60); do
   state=$(docker inspect -f '{{.State.Health.Status}}' "${DB}" 2>/dev/null || echo starting)
   [ "${state}" = healthy ] && break
   sleep 3
 done
-[ "${state:-}" = healthy ] || { echo "MariaDB never became healthy" >&2; docker logs --tail 20 "${DB}"; teardown; exit 1; }
+[ "${state}" = healthy ] || { echo "MariaDB never became healthy" >&2; docker logs --tail 20 "${DB}"; teardown; exit 1; }
 note "MariaDB is healthy"
 
-say "Site"
-site_exists=$(docker run --rm -v "${VOL}:/home/frappe/frappe-bench/sites" \
-  --entrypoint /bin/bash "${TAG}" -c "[ -f sites/${SITE}/site_config.json ] && echo yes || echo no" 2>/dev/null | tr -d '\r')
+# The container runs mounted script FILES, not strings. The embedded version had
+# to survive the host shell, the WSL shell and the container shell, and died on
+# `syntax error: unexpected end of file` twenty minutes into app installation.
+common_mounts=(
+  -v "${VOL}:/home/frappe/frappe-bench/sites"
+  -v "${REPO_ROOT}/scripts:/opt/scripts:ro"
+  # The working tree's app, over the copy baked into the image. Without this,
+  # testing a one-line change to ags_edusmart means a 40-minute image rebuild.
+  # The image pip-installs the app in editable mode at exactly this path, so the
+  # mount is picked up with no reinstall. Read-write because Python writes
+  # __pycache__ into it.
+  -v "${REPO_ROOT}/apps/ags_edusmart:/home/frappe/frappe-bench/apps/ags_edusmart"
+)
 
-if [ "${site_exists}" = yes ]; then
-  note "${SITE} already exists — reusing it (--fresh to rebuild)"
-else
-  note "creating ${SITE}; this installs six apps and takes a while"
-  docker run --rm --network "${NET}" \
-    -v "${VOL}:/home/frappe/frappe-bench/sites" \
-    --entrypoint /bin/bash "${TAG}" -c "
-      set -e
-      cd /home/frappe/frappe-bench
-      # No seeding step here, unlike the Kubernetes Job: Docker populates a
-      # fresh named volume from the image's directory on first mount, so
-      # apps.txt and the asset bundles are already there. A PVC does not do
-      # that, which is why infra/k8s has an initContainer and this does not.
-      bench set-config -g db_host '${DB}'
-      bench set-config -g db_port 3306
-      bench set-config -g redis_cache 'redis://${REDIS}:6379'
-      bench set-config -g redis_queue 'redis://${REDIS}:6379'
-      bench set-config -g redis_socketio 'redis://${REDIS}:6379'
-      bench new-site '${SITE}' \
-        --db-root-password '${DB_ROOT_PASSWORD}' \
-        --admin-password '${ADMIN_PASSWORD}' \
-        --no-mariadb-socket \
-        --install-app erpnext --install-app payments --install-app hrms \
-        --install-app education --install-app ags_edusmart
-    " || { echo "site creation failed" >&2; teardown; exit 1; }
+say "Site"
+docker run --rm --network "${NET}" "${common_mounts[@]}" \
+  -e SITE="${SITE}" -e DB_HOST="${DB}" -e REDIS_HOST="${REDIS}" \
+  -e DB_ROOT_PASSWORD="${DB_ROOT_PASSWORD}" -e ADMIN_PASSWORD="${ADMIN_PASSWORD}" \
+  --entrypoint /bin/bash "${TAG}" /opt/scripts/lib/test-site-init.sh \
+  2>&1 | grep -vE 'Updating DocTypes|^[[:space:]]*$'
+site_rc=${PIPESTATUS[0]}
+if [ "${site_rc}" -ne 0 ]; then
+  echo "site setup failed (exit ${site_rc})" >&2
+  teardown
+  exit 1
 fi
 
 say "Tests"
-docker run --rm --network "${NET}" \
-  -v "${VOL}:/home/frappe/frappe-bench/sites" \
-  --entrypoint /bin/bash "${TAG}" -c "
-    cd /home/frappe/frappe-bench
-    bench --site '${SITE}' set-config allow_tests true >/dev/null 2>&1 || true
-    bench --site '${SITE}' run-tests --app ags_edusmart
-  "
+docker run --rm --network "${NET}" "${common_mounts[@]}" \
+  -e SITE="${SITE}" \
+  --entrypoint /bin/bash "${TAG}" /opt/scripts/lib/test-run.sh
 rc=$?
 
 say "Cleanup"
