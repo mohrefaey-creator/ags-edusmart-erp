@@ -1,0 +1,69 @@
+# TLS termination and reverse proxy for the single-VM deployment.
+#
+# Caddy rather than the tuned nginx config in infra/nginx, for one reason that
+# matters more than the tuning: it obtains AND renews certificates by itself.
+# infra/nginx assumes certificates already exist and something else keeps them
+# fresh, which on a single VM means installing and monitoring certbot. An
+# expired certificate takes the school offline at 07:00 on a Tuesday.
+#
+# infra/nginx stays as the config for the multi-node topology, where
+# terminating TLS at two load balancers is a different problem.
+
+{
+	email {$ACME_EMAIL}
+	# Uncomment to use Let's Encrypt's staging CA while testing DNS and
+	# firewall. Staging certificates are untrusted by browsers but are not
+	# rate-limited, and the production CA is: five failures per account per
+	# hostname per hour, which is easy to hit while debugging.
+	# acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+}
+
+{$SITE_NAME} {
+	encode zstd gzip
+
+	# Socket.IO first: it must not fall through to the web upstream. The
+	# handler is matched in order, and /socket.io is a long-lived upgrade,
+	# not a request/response.
+	handle /socket.io/* {
+		reverse_proxy socketio:9000
+	}
+
+	# Frappe's built assets are content-hashed, so they can be cached hard.
+	# Everything else must not be — an ERP page is per-user.
+	@assets path /assets/* /files/*
+	handle @assets {
+		header Cache-Control "public, max-age=31536000, immutable"
+		reverse_proxy web:8000
+	}
+
+	handle {
+		reverse_proxy web:8000 {
+			# Frappe resolves which site to serve from the Host header, so it
+			# has to arrive unmodified. Caddy preserves it by default; this is
+			# explicit because changing it silently breaks every request with
+			# a 404 that looks like the app, not the proxy.
+			header_up Host {host}
+			header_up X-Forwarded-Proto {scheme}
+			header_up X-Real-IP {remote_host}
+		}
+	}
+
+	# Attachments and bulk imports. Frappe's own limit is set separately in
+	# the site config; this only has to be no smaller.
+	request_body {
+		max_size 50MB
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	log {
+		output stdout
+		format json
+	}
+}

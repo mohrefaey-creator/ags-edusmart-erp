@@ -20,3 +20,4 @@ dump.rdb
 # worth keeping are the curated load-tests/results-*.txt, not the raw dumps.
 load-tests/k6/summary.json
 load-tests/k6/calibration.json
+deploy/compose/.env

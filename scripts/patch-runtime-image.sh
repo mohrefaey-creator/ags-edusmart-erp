@@ -56,6 +56,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends git && rm -rf /
 RUN mkdir -p /home/frappe/logs /home/frappe/frappe-bench/logs && chown -R frappe:frappe /home/frappe/logs /home/frappe/frappe-bench/logs
 COPY --chown=frappe:frappe entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
+HEALTHCHECK NONE
 USER frappe
 EOF
 

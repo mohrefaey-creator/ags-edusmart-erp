@@ -1,0 +1,231 @@
+# AGS EduSmart ERP — single-VM deployment.
+#
+#   cd deploy/compose
+#   cp .env.example .env      # then edit it
+#   docker compose up -d
+#
+# WHY THIS EXISTS ALONGSIDE infra/k8s
+#
+# infra/k8s describes the six-node topology the capacity model sizes for: 2,500
+# concurrent users, 625 req/s, MariaDB with replicas, ReadWriteMany storage. It
+# is the right shape for that load and considerable overkill below it.
+#
+# This runs the same image, the same roles and the same entrypoint on one
+# machine. Three of the hard problems in the Kubernetes version do not exist
+# here at all:
+#
+#   shared storage   one host, one volume. The ReadWriteMany requirement that
+#                    drives the whole storage design in infra/k8s is met by a
+#                    plain docker volume, because every container is on the
+#                    same machine.
+#   TLS              Caddy obtains and renews certificates on its own.
+#   datastore ops    MariaDB and Redis are ordinary containers with volumes and
+#                    healthchecks, not a cluster's worth of moving parts.
+#
+# What it gives up: no horizontal scaling, no rolling deploy without a brief
+# outage, and the database shares a machine with the application. For one
+# school that is a reasonable trade. When it stops being one, infra/k8s is
+# where to go, and the image and roles carry over unchanged.
+
+name: ags-erp
+
+# ------------------------------------------------------------------ anchors
+x-frappe-env: &frappe-env
+  SITE_NAME: ${SITE_NAME:?set SITE_NAME in .env}
+  DB_HOST: mariadb
+  DB_PORT: "3306"
+  DB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?set DB_ROOT_PASSWORD in .env}
+  ADMIN_PASSWORD: ${ADMIN_PASSWORD:?set ADMIN_PASSWORD in .env}
+  REDIS_CACHE_HOST: redis-cache
+  REDIS_QUEUE_HOST: redis-queue
+  REDIS_SOCKETIO_HOST: redis-cache
+  # The entrypoint waits on these before starting any role. They match the
+  # ports in infra/redis/*.conf, which are bench's own odd defaults rather
+  # than 6379.
+  REDIS_CACHE_PORT: "13000"
+  REDIS_QUEUE_PORT: "11000"
+  GUNICORN_WORKERS: ${GUNICORN_WORKERS:-4}
+
+x-frappe-service: &frappe-service
+  image: ${AGS_IMAGE:-ags/edusmart-erp:local}
+  restart: unless-stopped
+  environment: *frappe-env
+  volumes:
+    # One volume, every container. This is the whole reason a single VM is
+    # simpler: web and the workers both write attachments, and on one host
+    # that needs no shared-filesystem machinery at all.
+    - sites:/home/frappe/frappe-bench/sites
+  depends_on:
+    mariadb:
+      condition: service_healthy
+    redis-cache:
+      condition: service_started
+    redis-queue:
+      condition: service_started
+
+services:
+  # -------------------------------------------------------------- datastores
+  mariadb:
+    image: mariadb:11
+    restart: unless-stopped
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --innodb-file-per-table=1
+      # Frappe writes wide rows; the compressed-row default trips a row-size
+      # error deep into site creation rather than at configuration time.
+      - --innodb-read-only-compressed=0
+      - --innodb-buffer-pool-size=${DB_BUFFER_POOL:-1G}
+      - --max-connections=${DB_MAX_CONNECTIONS:-200}
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?}
+    volumes:
+      - mariadb:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
+
+  redis-cache:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    volumes:
+      - ../../infra/redis/redis-cache.conf:/usr/local/etc/redis/redis.conf:ro
+    # No volume, deliberately: this one is a cache. redis-cache.conf sets
+    # `save ""` and allkeys-lru, so everything in it is disposable by design.
+
+  redis-queue:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    volumes:
+      - ../../infra/redis/redis-queue.conf:/usr/local/etc/redis/redis.conf:ro
+      # This one IS persisted. It holds queued background jobs — the fee
+      # reminders and invoice runs — and redis-queue.conf turns on appendonly
+      # precisely so a restart does not drop them.
+      - redis-queue:/data
+
+  # ------------------------------------------------------ one-shot: setup
+  # `docker compose up -d` does not start these; they are behind a profile and
+  # run once, in order. See README.md.
+  #
+  #   docker compose --profile setup run --rm site-init
+  #   docker compose --profile setup run --rm migrate
+  site-init:
+    <<: *frappe-service
+    profiles: ["setup"]
+    restart: "no"
+    entrypoint: ["/bin/bash", "/opt/ags/site-init.sh"]
+    volumes:
+      - sites:/home/frappe/frappe-bench/sites
+      - ./site-init.sh:/opt/ags/site-init.sh:ro
+
+  migrate:
+    <<: *frappe-service
+    profiles: ["setup"]
+    restart: "no"
+    command: ["migrate"]
+
+  # -------------------------------------------------------------- app tiers
+  web:
+    <<: *frappe-service
+    command: ["web"]
+    healthcheck:
+      # The Host header is not optional. Frappe picks the site from it, and a
+      # healthcheck that omits it gets a 404 from a perfectly healthy app —
+      # which reads as the app being broken rather than the check being wrong.
+      # Single-quoted as one scalar: unquoted, the `Host: ` inside it is a YAML
+      # mapping indicator and compose rejects the list item as "must be a
+      # string".
+      test:
+        - CMD-SHELL
+        - 'curl -fsS -H "Host: ${SITE_NAME}" http://localhost:8000/api/method/ping || exit 1'
+      interval: 20s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+
+  socketio:
+    <<: *frappe-service
+    command: ["socketio"]
+
+  worker-short:
+    <<: *frappe-service
+    command: ["worker"]
+    environment:
+      <<: *frappe-env
+      WORKER_QUEUE: short
+
+  worker-default:
+    <<: *frappe-service
+    command: ["worker"]
+    environment:
+      <<: *frappe-env
+      WORKER_QUEUE: default
+
+  worker-long:
+    <<: *frappe-service
+    command: ["worker"]
+    environment:
+      <<: *frappe-env
+      WORKER_QUEUE: long
+
+  scheduler:
+    <<: *frappe-service
+    command: ["scheduler"]
+    # EXACTLY ONE. Two schedulers double every scheduled job, which for the
+    # reminder ladder means two messages to every parent. Do not scale this.
+
+  # ----------------------------------------------------------------- backups
+  backup:
+    <<: *frappe-service
+    restart: unless-stopped
+    entrypoint: ["/bin/bash", "/opt/ags/backup-loop.sh"]
+    environment:
+      <<: *frappe-env
+      BACKUP_AT_UTC: ${BACKUP_AT_UTC:-22:15}
+      BACKUP_KEEP_DAYS: ${BACKUP_KEEP_DAYS:-14}
+    volumes:
+      - sites:/home/frappe/frappe-bench/sites
+      - ./backup-loop.sh:/opt/ags/backup-loop.sh:ro
+
+  # --------------------------------------------------- TLS + reverse proxy
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data      # certificates and ACME account keys live here
+      - caddy-config:/config
+    environment:
+      SITE_NAME: ${SITE_NAME:?}
+      ACME_EMAIL: ${ACME_EMAIL:?set ACME_EMAIL in .env}
+    networks:
+      default:
+        aliases:
+          # So the site name resolves to Caddy from inside the stack. This is
+          # not cosmetic: TLS server-name selection uses the hostname in the
+          # URL, not the Host header, so a check against https://localhost
+          # makes Caddy look for a certificate named "localhost", fail to find
+          # one, and abort the handshake with `tlsv1 alert internal error` —
+          # while holding a perfectly good certificate for the real name.
+          # With the alias, in-stack checks and the outside world take the same
+          # path.
+          - ${SITE_NAME:?}
+    depends_on:
+      - web
+      - socketio
+
+volumes:
+  sites:
+  mariadb:
+  redis-queue:
+  caddy-data:
+  caddy-config:

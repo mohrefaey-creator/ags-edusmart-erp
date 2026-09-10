@@ -183,10 +183,22 @@ ENV PATH="/home/frappe/.local/bin:/home/frappe/frappe-bench/env/bin:${PATH}"
 
 EXPOSE 8000 9000
 
-# The health check hits Frappe itself, not just the port: a gunicorn master with
-# every worker wedged still accepts connections.
-HEALTHCHECK --interval=20s --timeout=5s --start-period=90s --retries=3 \
-    CMD curl -fsS http://localhost:8000/api/method/ping || exit 1
+# No HEALTHCHECK here, deliberately.
+#
+# One image serves six roles, and only the thing that starts the container knows
+# which. A single healthcheck baked into the image was wrong twice over:
+#
+#   * it hit http://localhost:8000, which only the web role serves. The three
+#     worker queues, the scheduler and socketio have nothing listening there, so
+#     every one of them reported permanently unhealthy — and under any
+#     restart-on-unhealthy policy would restart forever while working fine.
+#   * it sent no Host header, so even the web role got a 404. Frappe picks the
+#     site from Host, and a request naming a site it does not have is correctly
+#     refused.
+#
+# Health is now defined where the role is: deploy/compose/compose.yaml gives web
+# a healthcheck carrying the Host header, and infra/k8s/10-web.yaml gives it
+# startup, readiness and liveness probes carrying the same.
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["web"]
