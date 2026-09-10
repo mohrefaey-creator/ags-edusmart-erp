@@ -186,6 +186,16 @@ patches:
         path: /spec/template/spec/containers/0/livenessProbe/httpGet/httpHeaders/0/value
         value: ags.localhost
 
+  # --------------------------------------------------------------- ingress
+  # The Ingress names the production host. Locally the site is ags.localhost,
+  # and an Ingress rule whose host matches nothing routes nothing — the
+  # controller returns its default backend's 404 and the app looks broken.
+  - target: { kind: Ingress, name: ags-erp }
+    patch: |
+      - op: replace
+        path: /spec/rules/0/host
+        value: ags.localhost
+
   # ------------------------------------------------------------------- HPA
   # An HPA overrides its target's replica count, so the `replicas:` block above
   # is quietly undone by minReplicas: 6 — the deploy came up with six web pods,
