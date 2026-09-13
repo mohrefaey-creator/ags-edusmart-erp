@@ -40,6 +40,36 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # The application is its own repository — apps.json names it, and
+      # .gitignore excludes it here on purpose: it is MIT-licensed and kept
+      # apart from the AGPL upstream it sits on. So a checkout of this repo
+      # contains no application, and the Dockerfile's
+      # `COPY apps/ags_edusmart` fails with "not found". The first run did
+      # exactly that.
+      #
+      # It is private, and GITHUB_TOKEN can only read the repo the workflow
+      # runs in. AGS_APP_TOKEN is a fine-grained personal access token with
+      # read-only Contents on mohrefaey-creator/ags_edusmart, stored as a
+      # repository secret here. Nothing else in this workflow uses it.
+      - name: Refuse to run without the application token
+        if: ${{ secrets.AGS_APP_TOKEN == '' }}
+        run: |
+          echo "::error::AGS_APP_TOKEN is not set. Create a fine-grained PAT with read-only Contents on mohrefaey-creator/ags_edusmart and add it under Settings → Secrets and variables → Actions."
+          exit 1
+
+      - name: Check out the application
+        uses: actions/checkout@v4
+        with:
+          repository: mohrefaey-creator/ags_edusmart
+          token: ${{ secrets.AGS_APP_TOKEN }}
+          path: apps/ags_edusmart
+
+      - name: Record what is being built
+        run: |
+          echo "infra: $(git rev-parse --short=12 HEAD)"
+          echo "app  : $(git -C apps/ags_edusmart rev-parse --short=12 HEAD)"
+          echo "app  : $(git -C apps/ags_edusmart log -1 --format='%s')"
+
       - name: Free disk space
         # The default runner has ~14 GB free. The builder stage alone is larger
         # than that once the frappe app tree and node_modules are in it.
@@ -50,8 +80,16 @@ jobs:
           df -h / | tail -1
 
       - name: Build
+        # Both commits go on the image as labels. The tag names only this
+        # repo's commit, but the image's behaviour depends on the app's commit
+        # just as much — a tag that cannot be traced to both is not traceable.
+        #   docker inspect --format '{{index .Config.Labels "ags.app.commit"}}' <image>
         run: |
-          docker build -f infra/docker/Dockerfile -t ags/edusmart-erp:local .
+          docker build -f infra/docker/Dockerfile -t ags/edusmart-erp:local \
+            --label "ags.infra.commit=$(git rev-parse HEAD)" \
+            --label "ags.app.commit=$(git -C apps/ags_edusmart rev-parse HEAD)" \
+            --label "org.opencontainers.image.source=https://github.com/${{ github.repository }}" \
+            .
 
       - name: Verify the image
         # The 16 checks that catch the failures a green build passes straight
@@ -93,3 +131,5 @@ jobs:
           printf -- '- `%s`\n' "${tags[@]}" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "Deploy with: \`AGS_IMAGE=${IMAGE}:sha-${short}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Built from infra \`${short}\` + app \`$(git -C apps/ags_edusmart rev-parse --short=12 HEAD)\`" >> "$GITHUB_STEP_SUMMARY"

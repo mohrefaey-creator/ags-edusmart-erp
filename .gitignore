@@ -1,6 +1,14 @@
-# The AGS app is its own repository (see apps.json and docs/versions.lock.md).
-# It lives here as a working checkout so scripts/bootstrap.sh can install it
-# without a network round-trip, but this repo does not track its contents.
+# The AGS app is its own repository — https://github.com/mohrefaey-creator/ags_edusmart,
+# named in apps.json — kept apart because it is MIT and the upstream it sits on
+# is AGPL. It lives here as a working checkout so scripts/bootstrap.sh can
+# install it without a network round-trip, but this repo does not track it.
+#
+# Two consequences that are easy to miss, because both were:
+#   * a commit here NEVER includes a change under apps/. Commit and push the app
+#     from inside apps/ags_edusmart, or the change exists only on this disk.
+#   * a fresh clone of this repo has no application in it. CI checks the app
+#     repo out into apps/ags_edusmart before building; the VM runbook clones
+#     nothing because it pulls the built image.
 apps/
 
 __pycache__/
