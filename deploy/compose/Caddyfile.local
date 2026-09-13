@@ -1,0 +1,39 @@
+# Local-review listener: plain HTTP on 8080, no certificate, no DNS.
+#
+# Used only with compose.local.yaml, never on the VM. It exists because reviewing
+# the app on a laptop through the production Caddyfile means a self-signed
+# certificate warning, a .localhost name the OS resolver may not know, and WSL
+# port-forwarding for 443 that comes and goes. Reviewers should not have to
+# edit a hosts file to look at a login page.
+#
+# Host is rewritten to the site name upstream, so Frappe resolves the site no
+# matter what the browser sent — localhost, 127.0.0.1, or the WSL IP all work.
+{
+	auto_https off
+}
+
+:8080 {
+	encode zstd gzip
+
+	handle /socket.io/* {
+		reverse_proxy socketio:9000 {
+			header_up Host {$SITE_NAME}
+		}
+	}
+
+	handle {
+		reverse_proxy web:8000 {
+			header_up Host {$SITE_NAME}
+			header_up X-Forwarded-Proto http
+		}
+	}
+
+	request_body {
+		max_size 50MB
+	}
+
+	log {
+		output stdout
+		format json
+	}
+}

@@ -1,0 +1,17 @@
+# Local-review overlay. Adds a plain-HTTP listener on 8080 for looking at the
+# app on a laptop, with no certificate and no DNS setup.
+#
+#   docker compose -f compose.yaml -f compose.local.yaml up -d
+#
+# Then open http://localhost:8080. Never use this on the VM: it serves the ERP
+# unencrypted, which on a private laptop is fine and on the internet is not.
+#
+# An explicit -f overlay rather than compose.override.yaml, which compose loads
+# automatically — automatic loading is exactly how a local convenience ends up
+# running in production.
+services:
+  caddy:
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./Caddyfile.local:/etc/caddy/Caddyfile:ro
