@@ -48,27 +48,32 @@ jobs:
       # exactly that.
       #
       # It is private, and GITHUB_TOKEN can only read the repo the workflow
-      # runs in. AGS_APP_TOKEN is a fine-grained personal access token with
-      # read-only Contents on mohrefaey-creator/ags_edusmart, stored as a
-      # repository secret here. Nothing else in this workflow uses it.
-      # Checked in a shell step, not a step-level `if`: the secrets context
-      # is not available to `if` and the whole workflow fails to parse, with
-      # zero jobs and a run named after the file path instead of its name.
-      - name: Refuse to run without the application token
+      # runs in. Access is by DEPLOY KEY, not a personal access token: an SSH
+      # keypair generated for this purpose alone, its public half registered
+      # read-only on the app repo, its private half stored here as
+      # AGS_APP_DEPLOY_KEY. It can read one repository and nothing else, it is
+      # tied to no person's account, and rotating it is: delete the key on
+      # ags_edusmart → Settings → Deploy keys, generate a new pair, replace the
+      # secret. A PAT would have carried whoever created it out of the door.
+      #
+      # Checked in a shell step, not a step-level `if`: the secrets context is
+      # not available to `if`, and the whole workflow then fails to parse —
+      # zero jobs, and a run named after the file path instead of its name.
+      - name: Refuse to run without the deploy key
         env:
-          AGS_APP_TOKEN: ${{ secrets.AGS_APP_TOKEN }}
+          AGS_APP_DEPLOY_KEY: ${{ secrets.AGS_APP_DEPLOY_KEY }}
         run: |
-          if [ -z "${AGS_APP_TOKEN}" ]; then
-            echo "::error::AGS_APP_TOKEN is not set. Create a fine-grained PAT with read-only Contents on mohrefaey-creator/ags_edusmart and add it under Settings > Secrets and variables > Actions."
+          if [ -z "${AGS_APP_DEPLOY_KEY}" ]; then
+            echo "::error::AGS_APP_DEPLOY_KEY is not set. Generate an ed25519 keypair, add the public key as a read-only deploy key on mohrefaey-creator/ags_edusmart, and store the private key as this secret."
             exit 1
           fi
-          echo "token present"
+          echo "deploy key present"
 
       - name: Check out the application
         uses: actions/checkout@v4
         with:
           repository: mohrefaey-creator/ags_edusmart
-          token: ${{ secrets.AGS_APP_TOKEN }}
+          ssh-key: ${{ secrets.AGS_APP_DEPLOY_KEY }}
           path: apps/ags_edusmart
 
       - name: Record what is being built
