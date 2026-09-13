@@ -54,6 +54,8 @@ sed -i "s/^ADMIN_PASSWORD=.*/ADMIN_PASSWORD=vmtestadmin/" .env
 sed -i "s/^ACME_EMAIL=.*/ACME_EMAIL=test@example.com/" .env
 sed -i "s/^GUNICORN_WORKERS=.*/GUNICORN_WORKERS=2/" .env
 sed -i "s/^DB_BUFFER_POOL=.*/DB_BUFFER_POOL=256M/" .env
+# The example now defaults to the registry tag; this verifies the local build.
+sed -i "s|^AGS_IMAGE=.*|AGS_IMAGE=${TAG:-ags/edusmart-erp:local}|" .env
 
 say "Config"
 if docker compose config >/dev/null 2>/tmp/compose-cfg.err; then
