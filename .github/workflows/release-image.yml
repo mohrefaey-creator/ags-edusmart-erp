@@ -51,11 +51,18 @@ jobs:
       # runs in. AGS_APP_TOKEN is a fine-grained personal access token with
       # read-only Contents on mohrefaey-creator/ags_edusmart, stored as a
       # repository secret here. Nothing else in this workflow uses it.
+      # Checked in a shell step, not a step-level `if`: the secrets context
+      # is not available to `if` and the whole workflow fails to parse, with
+      # zero jobs and a run named after the file path instead of its name.
       - name: Refuse to run without the application token
-        if: ${{ secrets.AGS_APP_TOKEN == '' }}
+        env:
+          AGS_APP_TOKEN: ${{ secrets.AGS_APP_TOKEN }}
         run: |
-          echo "::error::AGS_APP_TOKEN is not set. Create a fine-grained PAT with read-only Contents on mohrefaey-creator/ags_edusmart and add it under Settings → Secrets and variables → Actions."
-          exit 1
+          if [ -z "${AGS_APP_TOKEN}" ]; then
+            echo "::error::AGS_APP_TOKEN is not set. Create a fine-grained PAT with read-only Contents on mohrefaey-creator/ags_edusmart and add it under Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+          echo "token present"
 
       - name: Check out the application
         uses: actions/checkout@v4
