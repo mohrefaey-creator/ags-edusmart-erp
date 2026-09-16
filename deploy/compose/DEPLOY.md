@@ -99,7 +99,14 @@ Prints `OK`. Anything else is a typo in `.env`.
 
 ## 4. Pull the image
 
-If the GitHub repo is private, log in first with a token that has
+The image's visibility is set on the **package**, separately from the repos —
+a private repo can publish a public image, and that is the intended setup here:
+both repos stay private, the package is public, and the VM needs no
+credentials to pull. Check it at
+https://github.com/mohrefaey-creator?tab=packages → `ags-edusmart-erp` →
+Package settings → Danger Zone.
+
+Only if the package is still private, log in first with a token that has
 `read:packages`:
 
 ```bash
