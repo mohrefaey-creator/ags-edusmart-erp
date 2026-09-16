@@ -41,7 +41,7 @@ know.
 ## 2. Prepare the VM
 
 ```bash
-git clone https://github.com/<owner>/<repo>.git ags-erp
+git clone https://github.com/mohrefaey-creator/ags-edusmart-erp.git ags-erp
 cd ags-erp
 sudo bash scripts/vm-bootstrap.sh
 ```
@@ -77,7 +77,7 @@ Set these four. Leave the rest at their defaults for now.
 | `ACME_EMAIL` | a mailbox someone reads; Let's Encrypt sends expiry warnings here |
 | `DB_ROOT_PASSWORD` | output of `openssl rand -base64 30` |
 | `ADMIN_PASSWORD` | output of `openssl rand -base64 30` |
-| `AGS_IMAGE` | the `sha-…` tag from the green Actions run, e.g. `ghcr.io/<owner>/ags-edusmart-erp:sha-abc123def456` |
+| `AGS_IMAGE` | the `sha-…` tag from the green Actions run, e.g. `ghcr.io/mohrefaey-creator/ags-edusmart-erp:sha-9aa8035e2658` (the first green run) |
 
 `SITE_NAME` is not cosmetic. Frappe chooses which site to serve from the
 request's `Host` header. If this does not match what browsers send, every page

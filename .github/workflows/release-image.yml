@@ -22,6 +22,12 @@ on:
   push:
     branches: [main]
     tags: ["v*"]
+    # A docs change does not change the image. Without this, fixing a typo in
+    # the runbook builds, tests and publishes a 4.8 GB image for 17 minutes.
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - ".github/workflows/infra.yml"
   workflow_dispatch:
 
 permissions:

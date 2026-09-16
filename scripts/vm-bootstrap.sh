@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Prepare a fresh Ubuntu VM to run the single-VM deployment.
 #
-#   curl -fsSL https://raw.githubusercontent.com/<owner>/<repo>/main/scripts/vm-bootstrap.sh | sudo bash
+#   curl -fsSL https://raw.githubusercontent.com/mohrefaey-creator/ags-edusmart-erp/main/scripts/vm-bootstrap.sh | sudo bash
 #   — or, after cloning —
 #   sudo bash scripts/vm-bootstrap.sh
 #
