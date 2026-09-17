@@ -133,6 +133,24 @@ else
   check "wrong Host is not served the app" "not served" "not served"
 fi
 
+say "A stylesheet, not just ping"
+# ping goes through gunicorn and says nothing about static files, which gunicorn
+# does not serve. The login page arrived as unstyled HTML for exactly that reason
+# while every other check here was green. Fetch the first stylesheet the login
+# page references and require a 200 with a CSS content type.
+css=$(docker compose exec -T web sh -c   "curl -s --max-time 15 -H 'Host: ${SITE}' http://localhost:8000/login | grep -oE 'href=\"/assets/[^\"]*\.css[^\"]*\"' | head -1 | cut -d'\"' -f2" 2>/dev/null | tr -d '
+')
+if [ -z "${css}" ]; then
+  check "login page references a stylesheet" "none found" "a path"
+else
+  ctype=$(docker compose exec -T web sh -c     "curl -sk --max-time 15 --resolve ${SITE}:443:${caddy_ip} -o /dev/null -w '%{http_code} %{content_type}' https://${SITE}${css}" 2>/dev/null | tr -d '
+')
+  case "${ctype}" in
+    200*css*) check "stylesheet served through Caddy" "200 text/css" "200 text/css" ;;
+    *)        check "stylesheet served through Caddy" "${ctype:-nothing}" "200 text/css" ;;
+  esac
+fi
+
 say "Backup"
 docker compose exec -T backup /usr/local/bin/entrypoint.sh backup 2>&1 | tail -4
 n=$(docker compose exec -T web sh -c \

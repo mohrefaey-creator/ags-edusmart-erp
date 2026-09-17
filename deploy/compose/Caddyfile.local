@@ -21,10 +21,23 @@
 		}
 	}
 
+	# Same as the production Caddyfile: gunicorn does not serve static files.
+	handle /assets/* {
+		root * /srv/sites
+		file_server
+	}
+	handle /files/* {
+		root * /srv/sites/{$SITE_NAME}/public
+		file_server
+	}
+
 	handle {
 		reverse_proxy web:8000 {
 			header_up Host {$SITE_NAME}
-			header_up X-Forwarded-Proto http
+			# Not forced to http: when this sits behind an HTTPS forwarder (a
+			# Codespace, a tunnel) the browser's scheme is https, and telling
+			# Frappe otherwise makes it emit http:// URLs the browser then
+			# blocks as mixed content.
 		}
 	}
 

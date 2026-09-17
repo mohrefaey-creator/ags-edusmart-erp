@@ -28,13 +28,25 @@
 		reverse_proxy socketio:9000
 	}
 
-	# Frappe's built assets are content-hashed, so they can be cached hard.
-	# Everything else must not be — an ERP page is per-user.
-	@assets path /assets/* /files/*
-	handle @assets {
+	# Static assets and public files are served by Caddy from the shared sites
+	# volume — NOT proxied to gunicorn. gunicorn does not serve them: in a bench
+	# that is nginx's job, and Frappe's WSGI app answers /assets with a 404. With
+	# these proxied, the login page arrived as unstyled HTML with every
+	# stylesheet missing, while /api/method/ping kept returning pong — which is
+	# why the verify script now fetches a stylesheet and not just ping.
+	#
+	# Built assets are content-hashed, so they can be cached hard. Public files
+	# (attachments the site chose to make public) can not be.
+	handle /assets/* {
+		root * /srv/sites
+		file_server
 		header Cache-Control "public, max-age=31536000, immutable"
-		reverse_proxy web:8000
 	}
+	handle /files/* {
+		root * /srv/sites/{$SITE_NAME}/public
+		file_server
+	}
+	# /private/files stays with Frappe: it checks permissions before serving.
 
 	handle {
 		reverse_proxy web:8000 {

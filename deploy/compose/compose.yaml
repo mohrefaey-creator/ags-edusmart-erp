@@ -204,6 +204,9 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy-data:/data      # certificates and ACME account keys live here
       - caddy-config:/config
+      # Read-only view of the sites volume, so Caddy can serve /assets and
+      # /files itself. gunicorn does not serve static files.
+      - sites:/srv/sites:ro
     environment:
       SITE_NAME: ${SITE_NAME:?}
       ACME_EMAIL: ${ACME_EMAIL:?set ACME_EMAIL in .env}
