@@ -22,10 +22,13 @@
   // The stack needs about 3 GB with Frappe loaded, and site creation is CPU
   // bound. The 4-core machine finishes it in ~15 minutes; the 2-core one in
   // ~35, and sometimes not at all under the memory pressure of Docker-in-Docker.
+  // No storage requirement: the 4-core machine ships with 32 GB, which holds
+  // the 4.8 GB image, its layers and the site comfortably — and asking for
+  // more than it has makes GitHub report "no machine types are available"
+  // rather than offering the next size up.
   "hostRequirements": {
     "cpus": 4,
-    "memory": "16gb",
-    "storage": "64gb"
+    "memory": "16gb"
   },
 
   // The application repo is private and separate (see .gitignore). This asks
