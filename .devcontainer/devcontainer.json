@@ -1,0 +1,62 @@
+{
+  // Evaluation environment: the whole ERP in a GitHub Codespace.
+  //
+  // Opens the verified single-VM stack (deploy/compose) on a cloud machine
+  // tied to your GitHub account and forwards the review port as a URL. It is
+  // for LOOKING at the application — it sleeps when idle, its disk is not a
+  // backup, and it is not where the school's data should ever live. For that,
+  // deploy/compose/DEPLOY.md.
+  //
+  // Costs nothing on a personal account inside the free monthly core-hours.
+  // Stop it when not in use (Code → Codespaces → Stop) so those hours are not
+  // spent on an idle machine.
+  "name": "AGS EduSmart ERP — evaluation",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+
+  "features": {
+    // The stack is Docker Compose; this runs a Docker daemon inside the
+    // codespace so `docker compose up` works exactly as it does on a VM.
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  },
+
+  // The stack needs about 3 GB with Frappe loaded, and site creation is CPU
+  // bound. The 4-core machine finishes it in ~15 minutes; the 2-core one in
+  // ~35, and sometimes not at all under the memory pressure of Docker-in-Docker.
+  "hostRequirements": {
+    "cpus": 4,
+    "memory": "16gb",
+    "storage": "64gb"
+  },
+
+  // The application repo is private and separate (see .gitignore). This asks
+  // GitHub, when the codespace is created, to grant its token read access to
+  // it — needed only if the published image cannot be pulled and the stack has
+  // to be built from source instead.
+  "customizations": {
+    "codespaces": {
+      "repositories": {
+        "mohrefaey-creator/ags_edusmart": {
+          "permissions": { "contents": "read" }
+        }
+      }
+    }
+  },
+
+  "forwardPorts": [8080],
+  "portsAttributes": {
+    "8080": {
+      "label": "AGS EduSmart ERP",
+      "onAutoForward": "notify",
+      // Private: only you, signed in to GitHub, can open the URL. Change to
+      // "public" from the Ports panel to share the link with someone else.
+      "visibility": "private"
+    }
+  },
+
+  // Runs once after the codespace is built. Everything it does is logged to
+  // .devcontainer/setup.log — `tail -f` it to watch site creation.
+  "postCreateCommand": "bash .devcontainer/setup.sh",
+
+  // Runs on every start, including after a sleep: bring the containers back.
+  "postStartCommand": "bash .devcontainer/start.sh"
+}

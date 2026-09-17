@@ -29,3 +29,4 @@ dump.rdb
 load-tests/k6/summary.json
 load-tests/k6/calibration.json
 deploy/compose/.env
+.devcontainer/setup.log
