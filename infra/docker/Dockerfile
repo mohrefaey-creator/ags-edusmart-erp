@@ -127,6 +127,19 @@ RUN bench build --production \
       -not -path 'apps/frappe/*' -prune -exec rm -rf {} + \
  && test -d apps/frappe/node_modules
 
+# Replace the symlinks under sites/assets with real copies.
+#
+# `bench build` leaves sites/assets/<app> as a symlink into
+# apps/<app>/<app>/public. Inside this image that resolves; inside any OTHER
+# container that mounts the sites volume — Caddy in deploy/compose, an nginx
+# sidecar in infra/k8s — the target does not exist and the link dangles. The
+# result was a login page delivered as bare HTML, every stylesheet a 404, while
+# the web container could `ls` the very same file. Real files serve from
+# anywhere, and content-hashed names make duplicates across upgrades harmless.
+RUN cd sites/assets \
+ && for l in $(find . -maxdepth 1 -type l); do t=$(readlink -f "$l"); rm "$l"; cp -r "$t" "$l"; done \
+ && test ! -L frappe && test -d frappe/dist
+
 # ---------------------------------------------------------------------- runtime
 FROM ${PYTHON_IMAGE} AS runtime
 

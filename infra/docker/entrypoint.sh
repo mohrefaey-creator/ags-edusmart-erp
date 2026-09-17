@@ -92,6 +92,18 @@ case "${1:-web}" in
   migrate)
     # Run as a Job before rolling the web tier, never from an app container:
     # concurrent migrations on one site corrupt the schema.
+    # First, any symlinks still under sites/assets on the volume become real
+    # copies. The image builds its assets that way now, but a volume seeded
+    # from an older image still holds links into an apps tree only the app
+    # container has — and the proxy serving /assets from that volume then
+    # 404s every stylesheet. Idempotent: nothing to do once no links remain.
+    if [ -d sites/assets ]; then
+      links=$(find sites/assets -maxdepth 1 -type l 2>/dev/null)
+      if [ -n "${links}" ]; then
+        log "materialising asset symlinks on the volume"
+        for l in ${links}; do t=$(readlink -f "$l"); rm "$l"; cp -r "$t" "$l"; done
+      fi
+    fi
     log "migrating ${SITE}"
     exec bench --site "${SITE}" migrate
     ;;
