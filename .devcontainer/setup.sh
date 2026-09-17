@@ -101,6 +101,13 @@ done
 echo "web: ${h:-unknown}"
 docker compose ps --format '  {{.Service}}\t{{.State}}'
 
+# ------------------------------------------------------------ first-run
+# Frappe holds every user at /desk/setup-wizard until it is completed, which
+# makes a fresh site look like "login does nothing". Complete it here with the
+# evaluation defaults so the first page a reviewer sees is the desk.
+say "Setup wizard"
+bash complete-setup.sh 2>&1 | tail -8
+
 say "Ready"
 echo "open the forwarded port 8080 (Ports panel) — or:"
 echo "  https://${CODESPACE_NAME:-<codespace>}-8080.${GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN:-app.github.dev}/login"

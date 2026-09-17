@@ -40,6 +40,13 @@ COMPOSE="docker compose -f compose.yaml"
 [ -f compose.local.yaml ] && ${COMPOSE} -f compose.local.yaml ps web >/dev/null 2>&1 \
   && COMPOSE="${COMPOSE} -f compose.local.yaml"
 
+# Idempotent: setup_complete is 1 once the wizard has run, by any route.
+done=$(${COMPOSE} exec -T web bench --site "${SITE}" execute frappe.db.get_single_value   --kwargs "{'doctype': 'System Settings', 'fieldname': 'setup_complete'}" 2>/dev/null | tr -d '[:space:]')
+if [ "${done}" = "1" ]; then
+  echo "setup already complete on ${SITE} — nothing to do"
+  exit 0
+fi
+
 echo "site     : ${SITE}"
 echo "company  : ${COMPANY_NAME} (${COMPANY_ABBR}), ${COUNTRY}, ${CURRENCY}, FY ${FY_START}..${FY_END}"
 
